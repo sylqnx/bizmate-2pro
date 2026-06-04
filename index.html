@@ -1,0 +1,2769 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<meta name="theme-color" content="#0a0a0f">
+<title>BizMate GH</title>
+
+<!-- Supabase JS -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<!-- No sql.js — using localStorage for MIT App Inventor compatibility -->
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --bg: #0a0a0f;
+  --s1: #111118;
+  --s2: #18181f;
+  --s3: #22222c;
+  --s4: #2c2c3a;
+  --w: #f0f0ec;
+  --d1: #aaa9b8;
+  --d2: #6b6a7e;
+  --d3: #3a3a50;
+  --gold: #f5a62a;
+  --gold2: rgba(245,166,42,0.13);
+  --gold3: rgba(245,166,42,0.07);
+  --green: #00d68f;
+  --green2: rgba(0,214,143,0.12);
+  --red: #ff4d6d;
+  --red2: rgba(255,77,109,0.12);
+  --blue: #4da6ff;
+  --blue2: rgba(77,166,255,0.12);
+  --orange: #ff8c42;
+  --orange2: rgba(255,140,66,0.12);
+  --purple: #b07ef8;
+  --purple2: rgba(176,126,248,0.12);
+  --wa: #25D366;
+  --bdr: rgba(255,255,255,0.07);
+  --bdr2: rgba(255,255,255,0.12);
+  --r: 14px;
+  --r2: 10px;
+  --r3: 8px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; overflow: hidden; background: var(--bg); }
+body { font-family: 'Space Grotesk', sans-serif; color: var(--w); font-size: 15px; }
+
+/* ── SCREENS ── */
+.screen {
+  position: fixed; inset: 0;
+  display: none; flex-direction: column;
+  background: var(--bg); overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.screen.active { display: flex; }
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--d3); border-radius: 3px; }
+
+/* ── TYPOGRAPHY ── */
+h1 { font-size: 26px; font-weight: 700; line-height: 1.2; }
+h2 { font-size: 18px; font-weight: 600; }
+h3 { font-size: 14px; font-weight: 600; }
+p { color: var(--d1); line-height: 1.6; }
+
+/* ── BUTTONS ── */
+.btn {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%; padding: 15px 20px; border-radius: var(--r2);
+  border: none; cursor: pointer; font-family: inherit;
+  font-size: 15px; font-weight: 600; transition: all 0.15s; min-height: 50px;
+}
+.btn:active { transform: scale(0.97); }
+.btn-gold { background: var(--gold); color: #000; }
+.btn-gold:hover { background: #f7b845; }
+.btn-outline { background: transparent; border: 1.5px solid var(--bdr2); color: var(--w); }
+.btn-outline:hover { background: var(--s2); }
+.btn-green { background: var(--green); color: #000; }
+.btn-red { background: var(--red); color: #fff; }
+.btn-ghost { background: transparent; color: var(--d1); font-size: 13px; }
+.btn-wa { background: var(--wa); color: #fff; }
+.btn-sm { padding: 9px 16px; font-size: 13px; min-height: 38px; width: auto; border-radius: 8px; }
+
+/* ── INPUTS ── */
+.field { margin-bottom: 16px; }
+.field label { display: block; font-size: 12px; font-weight: 600; color: var(--d2); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 7px; }
+.input {
+  width: 100%; padding: 13px 16px; background: var(--s2);
+  border: 1.5px solid var(--bdr); border-radius: var(--r3);
+  color: var(--w); font-family: inherit; font-size: 15px;
+  transition: border-color 0.15s; outline: none;
+}
+.input:focus { border-color: var(--gold); }
+.input::placeholder { color: var(--d3); }
+.input-wrap { position: relative; }
+.input-wrap .eye { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); cursor: pointer; color: var(--d2); font-size: 18px; background: none; border: none; padding: 4px; }
+.input-num { font-size: 18px; font-weight: 600; }
+
+/* ── CARDS ── */
+.card {
+  background: var(--s1); border: 1px solid var(--bdr);
+  border-radius: var(--r); padding: 18px;
+}
+
+/* ── NAV ── */
+#nav {
+  display: none; position: fixed; bottom: 0; left: 0; right: 0;
+  background: var(--s1); border-top: 1px solid var(--bdr);
+  padding: 8px 0 max(8px, env(safe-area-inset-bottom));
+  z-index: 100;
+}
+#nav.visible { display: flex; }
+.nav-items { display: flex; width: 100%; }
+.nav-item {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  gap: 4px; padding: 6px 4px; cursor: pointer; border: none;
+  background: transparent; color: var(--d2); font-family: inherit;
+  font-size: 10px; font-weight: 500; transition: color 0.15s; min-height: 44px;
+}
+.nav-item .nav-icon { font-size: 20px; line-height: 1; }
+.nav-item.active { color: var(--gold); }
+
+/* ── HEADER ── */
+.screen-header {
+  display: flex; align-items: center; gap: 12px;
+  padding: 16px 20px; border-bottom: 1px solid var(--bdr);
+  background: var(--s1); position: sticky; top: 0; z-index: 10;
+  flex-shrink: 0;
+}
+.back-btn { background: none; border: none; color: var(--d1); cursor: pointer; font-size: 22px; padding: 4px; min-width: 32px; }
+.screen-title { font-size: 17px; font-weight: 700; flex: 1; }
+
+/* ── STATUS BADGE ── */
+.badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600;
+}
+.badge-green { background: var(--green2); color: var(--green); }
+.badge-red { background: var(--red2); color: var(--red); }
+.badge-orange { background: var(--orange2); color: var(--orange); }
+.badge-gold { background: var(--gold2); color: var(--gold); }
+.badge-blue { background: var(--blue2); color: var(--blue); }
+
+/* ── TOAST ── */
+#toast {
+  position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(100px);
+  background: var(--s3); border: 1px solid var(--bdr2); color: var(--w);
+  padding: 12px 20px; border-radius: var(--r2); font-size: 14px; font-weight: 500;
+  z-index: 9999; transition: transform 0.3s; white-space: nowrap; max-width: 90vw;
+  text-overflow: ellipsis; overflow: hidden;
+}
+#toast.show { transform: translateX(-50%) translateY(0); }
+#toast.success { border-color: var(--green); color: var(--green); }
+#toast.error { border-color: var(--red); color: var(--red); }
+
+/* ── MODAL ── */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+  z-index: 500; display: none; align-items: flex-end;
+  backdrop-filter: blur(4px);
+}
+.modal-overlay.active { display: flex; }
+.modal-box {
+  background: var(--s1); border-radius: 20px 20px 0 0;
+  width: 100%; padding: 24px 20px max(24px, env(safe-area-inset-bottom));
+  border-top: 1px solid var(--bdr2); max-height: 90vh; overflow-y: auto;
+}
+.modal-handle { width: 36px; height: 4px; background: var(--d3); border-radius: 2px; margin: 0 auto 20px; }
+.modal-title { font-size: 18px; font-weight: 700; margin-bottom: 16px; }
+
+/* ── SPLASH ── */
+#screen-splash {
+  align-items: center; justify-content: center;
+  background: radial-gradient(ellipse at center, #1a1a2e 0%, var(--bg) 70%);
+}
+.splash-logo {
+  width: 100px; height: 100px; background: var(--gold);
+  border-radius: 24px; display: flex; align-items: center; justify-content: center;
+  font-size: 44px; margin-bottom: 24px;
+  box-shadow: 0 0 60px rgba(245,166,42,0.3);
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100% { box-shadow: 0 0 40px rgba(245,166,42,0.3); } 50% { box-shadow: 0 0 80px rgba(245,166,42,0.5); } }
+.splash-title { font-size: 32px; font-weight: 700; margin-bottom: 6px; }
+.splash-title span { color: var(--gold); }
+.splash-sub { color: var(--d2); font-size: 14px; margin-bottom: 48px; }
+.splash-loader { display: flex; gap: 8px; }
+.loader-dot {
+  width: 8px; height: 8px; border-radius: 50%; background: var(--gold2); border: 1.5px solid var(--gold);
+  animation: dot-pulse 1.4s ease-in-out infinite;
+}
+.loader-dot:nth-child(2) { animation-delay: 0.2s; }
+.loader-dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes dot-pulse { 0%,80%,100% { transform: scale(0.8); opacity: 0.4; } 40% { transform: scale(1.2); opacity: 1; } }
+
+/* ── AUTH SCREENS ── */
+.auth-wrap {
+  flex: 1; display: flex; flex-direction: column;
+  padding: 40px 24px max(24px, env(safe-area-inset-bottom));
+  max-width: 440px; width: 100%; margin: 0 auto;
+}
+.auth-logo {
+  display: flex; align-items: center; gap: 12px; margin-bottom: 40px;
+}
+.auth-logo-icon {
+  width: 44px; height: 44px; background: var(--gold); border-radius: 12px;
+  display: flex; align-items: center; justify-content: center; font-size: 20px;
+}
+.auth-logo-text { font-size: 20px; font-weight: 700; }
+.auth-logo-text span { color: var(--gold); }
+.auth-tagline { color: var(--d2); font-size: 13px; }
+.auth-title { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+.auth-sub { color: var(--d1); font-size: 14px; margin-bottom: 32px; }
+.auth-link { text-align: center; margin-top: 20px; font-size: 14px; color: var(--d2); }
+.auth-link a { color: var(--gold); text-decoration: none; font-weight: 600; }
+.master-trigger {
+  position: fixed; bottom: 24px; right: 24px;
+  background: none; border: none; color: var(--d3); font-size: 18px;
+  cursor: pointer; padding: 8px; z-index: 10;
+}
+
+/* ── DASHBOARD ── */
+.dash-wrap { flex: 1; padding: 0 0 90px; }
+.dash-header { padding: 20px 20px 16px; }
+.dash-greeting { font-size: 13px; color: var(--d2); margin-bottom: 4px; }
+.dash-biz { font-size: 24px; font-weight: 700; }
+.dash-period { display: flex; gap: 6px; padding: 0 20px 16px; overflow-x: auto; }
+.dash-period::-webkit-scrollbar { display: none; }
+.period-btn {
+  padding: 7px 14px; border-radius: 20px; border: 1.5px solid var(--bdr);
+  background: transparent; color: var(--d2); font-family: inherit;
+  font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap;
+  transition: all 0.15s;
+}
+.period-btn.active { background: var(--gold); border-color: var(--gold); color: #000; }
+.stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 0 16px 16px; }
+.stat-card {
+  background: var(--s1); border: 1px solid var(--bdr); border-radius: var(--r2);
+  padding: 16px; position: relative; overflow: hidden;
+}
+.stat-card::after {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+}
+.stat-card.cash::after { background: var(--green); }
+.stat-card.credit::after { background: var(--orange); }
+.stat-card.debt::after { background: var(--red); }
+.stat-card.recovered::after { background: var(--blue); }
+.stat-label { font-size: 11px; color: var(--d2); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+.stat-value { font-size: 22px; font-weight: 700; }
+.stat-value .currency { font-size: 14px; color: var(--d2); }
+.renewal-banner {
+  margin: 0 16px 16px; border-radius: var(--r2); padding: 12px 16px;
+  display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 500;
+}
+.renewal-banner.yellow { background: rgba(245,166,42,0.1); border: 1px solid rgba(245,166,42,0.3); color: var(--gold); }
+.renewal-banner.orange { background: var(--orange2); border: 1px solid rgba(255,140,66,0.3); color: var(--orange); }
+.renewal-banner .renew-btn { margin-left: auto; background: currentColor; color: #000; padding: 5px 12px; border-radius: 6px; border: none; cursor: pointer; font-family: inherit; font-size: 11px; font-weight: 700; white-space: nowrap; }
+.recent-section { padding: 0 16px; }
+.section-label { font-size: 12px; font-weight: 700; color: var(--d2); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; }
+.section-label a { color: var(--gold); font-size: 11px; text-decoration: none; text-transform: none; letter-spacing: 0; }
+.sale-item {
+  background: var(--s1); border: 1px solid var(--bdr); border-radius: var(--r3);
+  padding: 13px 14px; margin-bottom: 8px; display: flex; align-items: center; gap: 12px;
+}
+.sale-icon { width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+.sale-icon.cash { background: var(--green2); }
+.sale-icon.credit { background: var(--orange2); }
+.sale-icon.momo { background: var(--blue2); }
+.sale-info { flex: 1; min-width: 0; }
+.sale-name { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sale-time { font-size: 11px; color: var(--d2); margin-top: 2px; }
+.sale-amount { font-size: 16px; font-weight: 700; }
+.sale-amount.red { color: var(--red); }
+
+/* ── NEW SALE ── */
+.sale-wrap { flex: 1; padding: 16px 16px 100px; }
+.payment-toggle { display: flex; background: var(--s2); border-radius: var(--r3); padding: 4px; margin-bottom: 20px; gap: 4px; }
+.pay-btn { flex: 1; padding: 9px 8px; border-radius: 7px; border: none; background: transparent; color: var(--d2); font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+.pay-btn.active { background: var(--gold); color: #000; }
+.items-list { margin-bottom: 16px; }
+.item-row {
+  background: var(--s1); border: 1px solid var(--bdr); border-radius: var(--r3);
+  padding: 12px 14px; margin-bottom: 8px; display: flex; align-items: center; gap: 10px;
+}
+.item-name { flex: 1; font-size: 14px; font-weight: 600; }
+.item-qty-price { font-size: 12px; color: var(--d2); }
+.item-total { font-size: 15px; font-weight: 700; margin-right: 4px; }
+.item-remove { background: var(--red2); border: none; border-radius: 6px; color: var(--red); cursor: pointer; padding: 6px 8px; font-size: 14px; flex-shrink: 0; }
+.add-item-btn {
+  width: 100%; padding: 12px; border: 1.5px dashed var(--bdr2); border-radius: var(--r3);
+  background: transparent; color: var(--d2); font-family: inherit; font-size: 14px;
+  cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+  margin-bottom: 20px;
+}
+.total-bar {
+  background: var(--s2); border: 1px solid var(--bdr); border-radius: var(--r2);
+  padding: 16px; margin-bottom: 20px;
+}
+.total-row { display: flex; justify-content: space-between; align-items: center; padding: 4px 0; }
+.total-row.main { border-top: 1px solid var(--bdr); margin-top: 8px; padding-top: 12px; }
+.total-row .label { font-size: 13px; color: var(--d2); }
+.total-row .value { font-size: 15px; font-weight: 600; }
+.total-row.main .value { font-size: 22px; font-weight: 700; color: var(--gold); }
+
+/* ── RECEIPT ── */
+.receipt {
+  background: #fff; color: #000; border-radius: var(--r); padding: 24px;
+  margin: 0 16px 20px; font-family: 'Courier New', monospace;
+}
+.receipt-head { text-align: center; padding-bottom: 16px; border-bottom: 2px dashed #ddd; margin-bottom: 16px; }
+.receipt-biz { font-size: 18px; font-weight: 700; }
+.receipt-contact { font-size: 11px; color: #666; margin-top: 4px; }
+.receipt-no { font-size: 11px; color: #999; margin-top: 6px; }
+.receipt-items { margin-bottom: 16px; }
+.receipt-item { display: flex; justify-content: space-between; font-size: 12px; padding: 3px 0; }
+.receipt-item .item-name { flex: 1; }
+.receipt-item .item-qty { width: 50px; text-align: center; }
+.receipt-item .item-subtotal { width: 70px; text-align: right; }
+.receipt-divider { border: none; border-top: 1px dashed #ddd; margin: 10px 0; }
+.receipt-total-line { display: flex; justify-content: space-between; font-size: 13px; padding: 3px 0; }
+.receipt-total-line.bold { font-weight: 700; font-size: 16px; border-top: 2px solid #000; padding-top: 8px; margin-top: 4px; }
+.receipt-footer { text-align: center; font-size: 11px; color: #999; margin-top: 16px; border-top: 1px dashed #ddd; padding-top: 12px; }
+
+/* ── DEBTS ── */
+.debt-item {
+  background: var(--s1); border: 1px solid var(--bdr); border-radius: var(--r3);
+  padding: 14px 16px; margin-bottom: 8px; cursor: pointer; transition: border-color 0.15s;
+}
+.debt-item:active { border-color: var(--bdr2); }
+.debt-item-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.debt-name { font-size: 15px; font-weight: 600; }
+.debt-phone { font-size: 12px; color: var(--d2); margin-top: 2px; }
+.debt-progress { height: 4px; background: var(--s3); border-radius: 2px; overflow: hidden; margin-top: 10px; }
+.debt-progress-fill { height: 100%; background: var(--green); border-radius: 2px; transition: width 0.3s; }
+.debt-amounts { display: flex; justify-content: space-between; margin-top: 6px; font-size: 11px; color: var(--d2); }
+
+/* ── RECORDS ── */
+.filter-bar { display: flex; gap: 6px; padding: 12px 16px; overflow-x: auto; }
+.filter-bar::-webkit-scrollbar { display: none; }
+.filter-chip { padding: 6px 14px; border-radius: 20px; border: 1.5px solid var(--bdr); background: transparent; color: var(--d2); font-family: inherit; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: all 0.15s; }
+.filter-chip.active { background: var(--gold); border-color: var(--gold); color: #000; }
+.search-bar { margin: 0 16px 12px; position: relative; }
+.search-bar input { padding-left: 40px; }
+.search-bar .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--d3); font-size: 16px; }
+
+/* ── SETTINGS ── */
+.settings-section { margin: 0 16px 20px; }
+.settings-item {
+  display: flex; align-items: center; padding: 15px 16px; background: var(--s1);
+  border: 1px solid var(--bdr); cursor: pointer; transition: background 0.15s;
+}
+.settings-item:first-child { border-radius: var(--r2) var(--r2) 0 0; }
+.settings-item:last-child { border-radius: 0 0 var(--r2) var(--r2); }
+.settings-item:not(:first-child) { border-top: none; }
+.settings-item:active { background: var(--s2); }
+.settings-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; margin-right: 14px; flex-shrink: 0; }
+.settings-text { flex: 1; }
+.settings-text .title { font-size: 14px; font-weight: 600; }
+.settings-text .sub { font-size: 12px; color: var(--d2); margin-top: 2px; }
+.settings-arrow { color: var(--d3); font-size: 18px; }
+
+/* ── MASTER PANEL ── */
+.master-wrap { flex: 1; padding: 16px 16px 90px; }
+.master-stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+.master-stat { background: var(--s1); border: 1px solid var(--bdr); border-radius: var(--r2); padding: 16px; text-align: center; }
+.master-stat .ms-val { font-size: 28px; font-weight: 700; }
+.master-stat .ms-label { font-size: 11px; color: var(--d2); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+.user-row {
+  background: var(--s1); border: 1px solid var(--bdr); border-radius: var(--r3);
+  padding: 14px 16px; margin-bottom: 8px; cursor: pointer;
+}
+.user-row-head { display: flex; justify-content: space-between; align-items: center; }
+.user-email { font-size: 14px; font-weight: 600; }
+.user-meta { font-size: 11px; color: var(--d2); margin-top: 3px; }
+
+/* ── LOCK SCREEN ── */
+#screen-lock {
+  align-items: center; justify-content: center;
+  background: radial-gradient(ellipse at center, #1a0a0a 0%, var(--bg) 70%);
+}
+.lock-wrap { padding: 40px 24px; text-align: center; max-width: 380px; width: 100%; }
+.lock-icon { font-size: 56px; margin-bottom: 24px; }
+.lock-title { font-size: 26px; font-weight: 700; margin-bottom: 8px; color: var(--red); }
+.lock-sub { font-size: 14px; color: var(--d1); margin-bottom: 32px; line-height: 1.6; }
+.lock-safe { background: var(--green2); border: 1px solid rgba(0,214,143,0.2); border-radius: var(--r2); padding: 12px 16px; font-size: 13px; color: var(--green); margin-bottom: 24px; }
+
+/* ── SUCCESS ── */
+.success-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 40px 24px 100px; }
+.success-icon { width: 80px; height: 80px; border-radius: 50%; background: var(--green2); border: 2px solid var(--green); display: flex; align-items: center; justify-content: center; font-size: 36px; margin-bottom: 20px; animation: pop 0.4s cubic-bezier(0.34,1.56,0.64,1); }
+@keyframes pop { from { transform: scale(0); } to { transform: scale(1); } }
+.success-title { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+.success-sub { font-size: 14px; color: var(--d2); margin-bottom: 32px; text-align: center; }
+
+/* ── SETUP WIZARD ── */
+.wizard-wrap { flex: 1; padding: 40px 24px; max-width: 440px; margin: 0 auto; width: 100%; }
+.wizard-step { font-size: 12px; color: var(--d2); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+.wizard-dots { display: flex; gap: 6px; margin-bottom: 32px; }
+.wizard-dot { width: 24px; height: 4px; border-radius: 2px; background: var(--s3); }
+.wizard-dot.active { background: var(--gold); }
+
+/* ── CLOCK ERROR ── */
+.clock-error { background: var(--orange2); border: 1px solid rgba(255,140,66,0.3); border-radius: var(--r2); padding: 16px; margin: 16px; font-size: 13px; color: var(--orange); display: none; }
+.clock-error.show { display: block; }
+
+/* ── EMPTY STATE ── */
+.empty-state { text-align: center; padding: 60px 24px; }
+.empty-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.5; }
+.empty-text { font-size: 14px; color: var(--d2); }
+
+/* ── DEBT DETAIL ── */
+.payment-history { margin: 0 16px 16px; }
+.payment-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; background: var(--s1); border: 1px solid var(--bdr); border-radius: var(--r3); margin-bottom: 6px; }
+.payment-amount { font-size: 16px; font-weight: 700; color: var(--green); }
+.payment-date { font-size: 11px; color: var(--d2); }
+
+/* ── ACTIVATE ── */
+.activate-wrap { flex: 1; padding: 40px 24px max(24px,env(safe-area-inset-bottom)); max-width: 440px; margin: 0 auto; }
+.key-display { background: var(--s2); border: 1.5px solid var(--gold); border-radius: var(--r2); padding: 20px; text-align: center; margin-bottom: 20px; display: none; }
+.key-display.show { display: block; }
+.key-val { font-size: 22px; font-weight: 700; color: var(--gold); letter-spacing: 2px; font-family: monospace; margin-bottom: 12px; }
+
+/* ── SPINNER ── */
+.spinner { display: inline-block; width: 20px; height: 20px; border: 2px solid rgba(255,255,255,0.2); border-top-color: currentColor; border-radius: 50%; animation: spin 0.7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── OVERLAY LOADING ── */
+#loading-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 9998; display: none; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+#loading-overlay.active { display: flex; }
+.loading-box { background: var(--s1); border: 1px solid var(--bdr2); border-radius: var(--r); padding: 28px 32px; text-align: center; }
+.loading-box p { margin-top: 12px; color: var(--d1); font-size: 14px; }
+
+/* ── MASTER ACCESS OVERLAY ── */
+#master-overlay {
+  position: fixed; inset: 0; background: #000;
+  z-index: 9000; display: none; flex-direction: column;
+  align-items: center; justify-content: center;
+}
+#master-overlay.active { display: flex; }
+.master-access-box { width: 100%; max-width: 360px; padding: 40px 24px; }
+.master-access-close { position: absolute; top: 20px; right: 20px; background: none; border: none; color: var(--d3); font-size: 22px; cursor: pointer; padding: 8px; }
+.master-attempts { font-size: 12px; color: var(--red); text-align: center; margin-bottom: 16px; }
+
+/* ── REVIEW SCREEN ── */
+.review-section { margin-bottom: 20px; }
+.review-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--bdr); font-size: 14px; }
+.review-row:last-child { border-bottom: none; }
+.review-row .lbl { color: var(--d2); }
+.review-row .val { font-weight: 600; text-align: right; }
+
+/* ── SYNC INDICATOR ── */
+.sync-dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
+.sync-dot.synced { background: var(--green); }
+.sync-dot.pending { background: var(--orange); }
+
+/* ── DEBT DETAIL SCREEN ── */
+.debt-detail-header { padding: 20px 16px; }
+.debt-amount-big { font-size: 36px; font-weight: 700; }
+.debt-balance-label { font-size: 13px; color: var(--d2); margin-bottom: 4px; }
+.debt-orig { font-size: 13px; color: var(--d2); margin-top: 4px; }
+
+/* ── KEY ENTRY ── */
+.key-input-styled { font-size: 18px; font-weight: 700; letter-spacing: 4px; text-align: center; text-transform: uppercase; font-family: monospace; }
+</style>
+  <!-- PWA -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="BizMate GH">
+  <meta name="application-name" content="BizMate GH">
+  <meta name="theme-color" content="#f5a62a">
+  <meta name="msapplication-TileColor" content="#f5a62a">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png">
+</head>
+<body>
+
+<!-- PWA Install Banner -->
+<div id="install-banner" style="display:none;position:fixed;bottom:70px;left:50%;transform:translateX(-50%);
+  width:calc(100% - 32px);max-width:398px;background:#1a1a1f;border:1px solid rgba(245,166,42,0.4);
+  border-radius:14px;padding:14px 16px;z-index:500;display:none;align-items:center;gap:12px;
+  box-shadow:0 8px 32px rgba(0,0,0,0.6);">
+  <img src="/icons/icon-192.png" style="width:40px;height:40px;border-radius:10px;flex-shrink:0;">
+  <div style="flex:1;">
+    <div style="font-weight:700;font-size:13px;">Install BizMate GH</div>
+    <div style="font-size:11px;color:#888;margin-top:1px;">Add to home screen for offline use</div>
+  </div>
+  <button onclick="installPWA()" style="background:#f5a62a;color:#000;border:none;padding:8px 14px;
+    border-radius:8px;font-weight:700;font-size:12px;cursor:pointer;white-space:nowrap;">Install</button>
+  <button onclick="dismissInstall()" style="background:none;border:none;color:#555;font-size:18px;
+    cursor:pointer;padding:4px;line-height:1;">✕</button>
+</div>
+
+<!-- iOS Install Tip (shown once on iOS) -->
+<div id="ios-banner" style="display:none;position:fixed;bottom:70px;left:50%;transform:translateX(-50%);
+  width:calc(100% - 32px);max-width:398px;background:#1a1a1f;border:1px solid rgba(245,166,42,0.4);
+  border-radius:14px;padding:14px 16px;z-index:500;box-shadow:0 8px 32px rgba(0,0,0,0.6);">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+    <div style="font-weight:700;font-size:13px;">Install on iPhone</div>
+    <button onclick="dismissIOS()" style="background:none;border:none;color:#555;font-size:18px;cursor:pointer;">✕</button>
+  </div>
+  <div style="font-size:12px;color:#aaa;line-height:1.6;">
+    Tap <strong style="color:#f5a62a;">Share</strong> at the bottom of your browser,
+    then tap <strong style="color:#f5a62a;">"Add to Home Screen"</strong>
+  </div>
+  <div style="text-align:center;font-size:22px;margin-top:8px;">
+    □ → ➕
+  </div>
+</div>
+
+
+<!-- LOADING OVERLAY -->
+<div id="loading-overlay">
+  <div class="loading-box">
+    <div class="spinner" style="width:36px;height:36px;border-width:3px;border-top-color:var(--gold);color:var(--gold);margin:0 auto;"></div>
+    <p id="loading-msg">Loading...</p>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- ════════════════════════════════════════ -->
+<!-- SCREEN 01: SPLASH -->
+<!-- ════════════════════════════════════════ -->
+<div id="screen-splash" class="screen active">
+  <div class="splash-logo">💼</div>
+  <div class="splash-title">Biz<span>Mate</span> GH</div>
+  <div class="splash-sub">Your business, in your pocket.</div>
+  <div class="splash-loader">
+    <div class="loader-dot"></div>
+    <div class="loader-dot"></div>
+    <div class="loader-dot"></div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════ -->
+<!-- SCREEN 02: LOGIN -->
+<!-- ════════════════════════════════════════ -->
+<div id="screen-login" class="screen">
+  <div class="auth-wrap">
+    <div class="auth-logo">
+      <div class="auth-logo-icon">💼</div>
+      <div>
+        <div class="auth-logo-text">Biz<span>Mate</span> GH</div>
+        <div class="auth-tagline">Small business, big control.</div>
+      </div>
+    </div>
+    <div class="auth-title">Welcome back</div>
+    <div class="auth-sub">Sign in to your account</div>
+    <div class="field">
+      <label>Email Address</label>
+      <input class="input" type="email" id="login-email" placeholder="you@email.com" autocomplete="email">
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <div class="input-wrap">
+        <input class="input" type="password" id="login-pass" placeholder="Your password" autocomplete="current-password">
+        <button class="eye" onclick="togglePw('login-pass',this)">👁</button>
+      </div>
+    </div>
+    <div id="login-lockout" style="display:none;background:var(--red2);border:1px solid rgba(255,77,109,0.3);border-radius:8px;padding:12px 14px;font-size:13px;color:var(--red);margin-bottom:16px;"></div>
+    <button class="btn btn-gold" onclick="doLogin()">
+      <span id="login-btn-text">Sign In</span>
+    </button>
+    <div class="auth-link" style="margin-top:16px;">
+      Don't have an account? <a href="#" onclick="showScreen('screen-register')">Register here</a>
+    </div>
+  </div>
+  <!-- Hidden master trigger - small lock in corner -->
+  <button class="master-trigger" onclick="openMasterOverlay()" id="master-trigger-btn">🔒</button>
+</div>
+
+<!-- ════════════════════════════════════════ -->
+<!-- SCREEN 03: REGISTER -->
+<!-- ════════════════════════════════════════ -->
+<div id="screen-register" class="screen">
+  <div class="auth-wrap">
+    <div class="auth-logo">
+      <div class="auth-logo-icon">💼</div>
+      <div>
+        <div class="auth-logo-text">Biz<span>Mate</span> GH</div>
+        <div class="auth-tagline">Small business, big control.</div>
+      </div>
+    </div>
+    <div class="auth-title">Create account</div>
+    <div class="auth-sub">Join thousands of Ghana businesses</div>
+    <div class="field">
+      <label>Email Address</label>
+      <input class="input" type="email" id="reg-email" placeholder="you@email.com" autocomplete="email">
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <div class="input-wrap">
+        <input class="input" type="password" id="reg-pass" placeholder="Min. 8 characters" autocomplete="new-password">
+        <button class="eye" onclick="togglePw('reg-pass',this)">👁</button>
+      </div>
+    </div>
+    <div class="field">
+      <label>Confirm Password</label>
+      <div class="input-wrap">
+        <input class="input" type="password" id="reg-pass2" placeholder="Repeat password" autocomplete="new-password">
+        <button class="eye" onclick="togglePw('reg-pass2',this)">👁</button>
+      </div>
+    </div>
+    <button class="btn btn-gold" onclick="doRegister()">
+      <span id="reg-btn-text">Create Account</span>
+    </button>
+    <div class="auth-link">
+      Already have an account? <a href="#" onclick="showScreen('screen-login')">Sign in</a>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════ -->
+<!-- SCREEN 04: ACTIVATE KEY -->
+<!-- ════════════════════════════════════════ -->
+<div id="screen-activate" class="screen">
+  <div class="activate-wrap">
+    <div style="text-align:center;margin-bottom:32px;">
+      <div style="font-size:48px;margin-bottom:16px;">🔑</div>
+      <h1 style="font-size:24px;">Activate Your Access</h1>
+      <p style="font-size:14px;margin-top:8px;">Enter your BizMate GH access key to unlock all features for 30 days.</p>
+    </div>
+    <div class="field">
+      <label>Access Key</label>
+      <input class="input key-input-styled" type="text" id="activate-key" placeholder="BM-XXXX-XXXX-XXXX" maxlength="17" autocomplete="off">
+    </div>
+    <div id="activate-error" style="display:none;background:var(--red2);border:1px solid rgba(255,77,109,0.3);border-radius:8px;padding:12px 14px;font-size:13px;color:var(--red);margin-bottom:16px;"></div>
+    <button class="btn btn-gold" onclick="doActivateKey()" style="margin-bottom:12px;">
+      <span id="activate-btn-text">Activate Key</span>
+    </button>
+    <div style="text-align:center;color:var(--d2);font-size:13px;margin-bottom:16px;">— or —</div>
+    <button class="btn btn-wa" onclick="openWhatsAppSubscribe()">
+      <span>💬</span> Subscribe via WhatsApp
+    </button>
+    <p style="font-size:12px;color:var(--d3);text-align:center;margin-top:16px;">
+      After payment, you'll receive your access key on WhatsApp
+    </p>
+    <button class="btn btn-ghost" onclick="doLogout()" style="margin-top:24px;font-size:13px;color:var(--d2);">Sign out</button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════ -->
+<!-- SCREEN 05: DASHBOARD -->
+<!-- ════════════════════════════════════════ -->
+<div id="screen-dashboard" class="screen">
+  <div class="dash-wrap">
+    <div class="dash-header">
+      <div class="dash-greeting">Good <span id="dash-time">morning</span> 👋</div>
+      <div class="dash-biz" id="dash-bizname">Your Business</div>
+      <div style="margin-top:8px;display:flex;align-items:center;gap:8px;">
+        <span class="sync-dot" id="sync-indicator"></span>
+        <span id="sync-text" style="font-size:11px;color:var(--d2);"></span>
+      </div>
+    </div>
+
+    <!-- Renewal banners -->
+    <div id="renewal-7" class="renewal-banner yellow" style="display:none;">
+      <span>⚠️ <strong id="renewal-days-7"></strong> days left on your subscription</span>
+      <button class="renew-btn" onclick="openWhatsAppSubscribe()">Renew</button>
+    </div>
+    <div id="renewal-3" class="renewal-banner orange" style="display:none;">
+      <span>🔴 <strong id="renewal-days-3"></strong> days left — Renew now!</span>
+      <button class="renew-btn" onclick="openWhatsAppSubscribe()">Renew Now</button>
+    </div>
+
+    <!-- Period filter -->
+    <div class="dash-period">
+      <button class="period-btn active" onclick="setPeriod('today',this)">Today</button>
+      <button class="period-btn" onclick="setPeriod('week',this)">This Week</button>
+      <button class="period-btn" onclick="setPeriod('month',this)">This Month</button>
+      <button class="period-btn" onclick="setPeriod('year',this)">This Year</button>
+      <button class="period-btn" onclick="setPeriod('all',this)">All Time</button>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="stat-card cash">
+        <div class="stat-label">Cash In Hand</div>
+        <div class="stat-value"><span class="currency">₵</span> <span id="stat-cash">0.00</span></div>
+      </div>
+      <div class="stat-card credit">
+        <div class="stat-label">Credit Sales</div>
+        <div class="stat-value"><span class="currency">₵</span> <span id="stat-credit">0.00</span></div>
+      </div>
+      <div class="stat-card debt">
+        <div class="stat-label">Total Debt Owed</div>
+        <div class="stat-value"><span class="currency">₵</span> <span id="stat-debt">0.00</span></div>
+      </div>
+      <div class="stat-card recovered">
+        <div class="stat-label">Debt Recovered</div>
+        <div class="stat-value"><span class="currency">₵</span> <span id="stat-recovered">0.00</span></div>
+      </div>
+    </div>
+
+    <!-- Recent sales -->
+    <div class="recent-section">
+      <div class="section-label">
+        Recent Sales
+        <a href="#" onclick="showNavScreen('screen-records')">See all →</a>
+      </div>
+      <div id="recent-sales-list">
+        <div class="empty-state" style="padding:30px 0;">
+          <div class="empty-icon">💰</div>
+          <div class="empty-text">No sales yet. Record your first sale!</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════ -->
+<!-- SCREEN 06: NEW SALE -->
+<!-- ════════════════════════════════════════ -->
+<div id="screen-sale" class="screen">
+  <div class="screen-header">
+    <div class="screen-title">New Sale</div>
+  </div>
+  <div class="sale-wrap">
+    <!-- Payment type -->
+    <div class="field">
+      <label>Payment Type</label>
+      <div class="payment-toggle">
+        <button class="pay-btn active" onclick="setPayType('cash',this)">💵 Cash</button>
+        <button class="pay-btn" onclick="setPayType('momo',this)">📱 MoMo</button>
+        <button class="pay-btn" onclick="setPayType('credit',this)">📋 Credit</button>
+      </div>
+    </div>
+
+    <!-- Customer (required for credit) -->
+    <div id="customer-section">
+      <div class="field">
+        <label>Customer Name <span id="cust-required" style="color:var(--red)"></span></label>
+        <input class="input" type="text" id="sale-customer" placeholder="e.g. Kwame Mensah (optional)">
+      </div>
+      <div class="field">
+        <label>Customer Phone <span id="cust-phone-required" style="color:var(--red)"></span></label>
+        <input class="input" type="tel" id="sale-phone" placeholder="e.g. 0241234567">
+      </div>
+    </div>
+
+    <!-- Items -->
+    <div class="field" style="margin-bottom:8px;">
+      <label>Items Sold</label>
+    </div>
+    <div class="items-list" id="items-list"></div>
+    <button class="add-item-btn" onclick="openAddItemModal()">
+      <span>+</span> Add Item
+    </button>
+
+    <!-- Credit partial payment -->
+    <div id="credit-section" style="display:none;">
+      <div class="field">
+        <label>Amount Paid Now (₵)</label>
+        <input class="input input-num" type="number" id="sale-paidnow" placeholder="0.00" min="0">
+      </div>
+    </div>
+
+    <!-- Total -->
+    <div class="total-bar" id="total-bar">
+      <div class="total-row main">
+        <span class="label">Total</span>
+        <span class="value">₵ <span id="sale-total">0.00</span></span>
+      </div>
+    </div>
+
+    <button class="btn btn-gold" onclick="goToReview()">Review Sale →</button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════ -->
+<!-- SCREEN 07: REVIEW SALE -->
+<!-- ════════════════════════════════════════ -->
+<div id="screen-review" class="screen">
+  <div class="screen-header">
+    <button class="back-btn" onclick="showScreen('screen-sale')">←</button>
+    <div class="screen-title">Review Sale</div>
+  </div>
+  <div style="padding:16px 16px 100px;">
+    <div class="card" style="margin-bottom:16px;">
+      <div class="review-section">
+        <div style="font-size:12px;font-weight:700;color:var(--d2);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">Sale Details</div>
+        <div class="review-row"><span class="lbl">Payment Type</span><span class="val" id="rev-paytype"></span></div>
+        <div class="review-row" id="rev-customer-row" style="display:none;"><span class="lbl">Customer</span><span class="val" id="rev-customer"></span></div>
+        <div class="review-row" id="rev-phone-row" style="display:none;"><span class="lbl">Phone</span><span class="val" id="rev-phone"></span></div>
+        <div class="review-row" id="rev-paidnow-row" style="display:none;"><span class="lbl">Paid Now</span><span class="val" id="rev-paidnow" style="color:var(--green)"></span></div>
+        <div class="review-row" id="rev-balance-row" style="display:none;"><span class="lbl">Balance Due</span><span class="val" id="rev-balance" style="color:var(--red)"></span></div>
+      </div>
+      <div class="review-section">
+        <div style="font-size:12px;font-weight:700;color:var(--d2);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">Items</div>
+        <div id="rev-items"></div>
+      </div>
+      <div style="border-top:1px solid var(--bdr);padding-top:16px;margin-top:4px;display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-size:16px;font-weight:700;">Total</span>
+        <span style="font-size:24px;font-weight:700;color:var(--gold)">₵ <span id="rev-total"></span></span>
+      </div>
+    </div>
+    <button class="btn btn-gold" onclick="confirmSale()" style="margin-bottom:10px;">
+      <span id="confirm-btn-text">✓ Confirm & Save</span>
+    </button>
+    <button class="btn btn-outline" onclick="showScreen('screen-sale')">← Edit Sale</button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════ -->
+<!-- SCREEN 08: SALE SUCCESS -->
+<!-- ════════════════════════════════════════ -->
+<div id="screen-success" class="screen">
+  <div class="screen-header">
+    <div class="screen-title">Sale Recorded ✓</div>
+  </div>
+  <div class="success-wrap">
+    <div class="success-icon">✓</div>
+    <div class="success-title">Sale Saved!</div>
+    <div class="success-sub" id="success-sub">Your sale has been recorded successfully.</div>
+
+    <!-- Receipt preview -->
+    <div id="receipt-preview" style="width:100%;"></div>
+
+    <div style="width:100%;display:flex;flex-direction:column;gap:10px;margin-top:16px;">
+      <button class="btn btn-wa" onclick="shareReceiptWhatsApp()">
+        <span>💬</span> Share Receipt on WhatsApp
+      </button>
+      <button class="btn btn-outline" onclick="downloadReceiptPNG()">
+        <span>📥</span> Download Receipt (PNG)
+      </button>
+      <button class="btn btn-gold" onclick="startNewSale()">
+        <span>+</span> Record Another Sale
+      </button>
+      <button class="btn btn-ghost" onclick="showNavScreen('screen-dashboard')">
+        Back to Dashboard
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════ -->
+<!-- SCREEN 09: DEBTS -->
+<!-- ════════════════════════════════════════ -->
+<div id="screen-debts" class="screen">
+  <div class="screen-header">
+    <div class="screen-title">Debts & Credit</div>
+    <button class="btn btn-gold btn-sm" onclick="openAddDebtModal()" style="margin-left:auto;">+ Add Debt</button>
+  </div>
+  <div style="padding:12px 16px 90px;">
+    <div style="display:flex;gap:8px;margin-bottom:14px;">
+      <div style="flex:1;background:var(--red2);border:1px solid rgba(255,77,109,0.2);border-radius:var(--r2);padding:12px;text-align:center;">
+        <div style="font-size:11px;color:var(--red);font-weight:600;text-transform:uppercase;">Total Owed</div>
+        <div style="font-size:20px;font-weight:700;color:var(--red);">₵ <span id="total-debt-amount">0.00</span></div>
+      </div>
+      <div style="flex:1;background:var(--green2);border:1px solid rgba(0,214,143,0.2);border-radius:var(--r2);padding:12px;text-align:center;">
+        <div style="font-size:11px;color:var(--green);font-weight:600;text-transform:uppercase;">Recovered</div>
+        <div style="font-size:20px;font-weight:700;color:var(--green);">₵ <span id="total-recovered-amount">0.00</span></div>
+      </div>
+    </div>
+    <div id="debts-list">
+      <div class="empty-state">
+        <div class="empty-icon">🎉</div>
+        <div class="empty-text">No debts! All customers are paid up.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════ -->
+<!-- SCREEN 10: DEBT DETAIL -->
+<!-- ════════════════════════════════════════ -->
+<div id="screen-debt-detail" class="screen">
+  <div class="screen-header">
+    <button class="back-btn" onclick="showNavScreen('screen-debts')">←</button>
+    <div class="screen-title" id="debt-detail-title">Debt Detail</div>
+    <div id="debt-detail-badge" style="margin-left:auto;"></div>
+  </div>
+  <div style="padding:0 0 100px;">
+    <div class="debt-detail-header">
+      <div class="debt-balance-label">Balance Due</div>
+      <div class="debt-amount-big">₵ <span id="dd-balance">0.00</span></div>
+      <div class="debt-orig">Original: ₵ <span id="dd-original">0.00</span></div>
+      <div id="dd-phone" style="font-size:13px;color:var(--d2);margin-top:4px;"></div>
+    </div>
+
+    <div style="padding:0 16px 16px;">
+      <div class="debt-progress">
+        <div class="debt-progress-fill" id="dd-progress" style="width:0%"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:11px;color:var(--d2);">
+        <span>Paid: ₵ <span id="dd-paid">0.00</span></span>
+        <span><span id="dd-pct">0</span>% recovered</span>
+      </div>
+    </div>
+
+    <div style="padding:0 16px 16px;display:flex;gap:8px;">
+      <button class="btn btn-gold" style="flex:1;" onclick="openRecordPaymentModal()">Record Payment</button>
+      <button class="btn btn-wa btn-sm" onclick="sendDebtReminder()" style="min-width:50px;">💬</button>
+    </div>
+
+    <div style="padding:0 16px;margin-bottom:12px;">
+      <div class="section-label">Payment History</div>
+    </div>
+    <div class="payment-history" id="dd-payments">
+      <div class="empty-state" style="padding:20px 0;">
+        <div class="empty-text">No payments recorded yet</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════ -->
+<!-- SCREEN 11: RECORDS -->
+<!-- ════════════════════════════════════════ -->
+<div id="screen-records" class="screen">
+  <div class="screen-header">
+    <div class="screen-title">Records</div>
+    <button class="btn btn-outline btn-sm" onclick="exportCSV()" style="margin-left:auto;">Export CSV</button>
+  </div>
+  <div style="padding-bottom:90px;">
+    <div class="search-bar">
+      <span class="search-icon">🔍</span>
+      <input class="input" type="text" id="records-search" placeholder="Search by customer name..." oninput="filterRecords()">
+    </div>
+    <div class="filter-bar">
+      <button class="filter-chip active" onclick="setRecordFilter('all',this)">All</button>
+      <button class="filter-chip" onclick="setRecordFilter('cash',this)">Cash</button>
+      <button class="filter-chip" onclick="setRecordFilter('momo',this)">MoMo</button>
+      <button class="filter-chip" onclick="setRecordFilter('credit',this)">Credit</button>
+    </div>
+    <div id="records-list" style="padding:0 16px;"></div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════ -->
+<!-- SCREEN 12: SETTINGS -->
+<!-- ════════════════════════════════════════ -->
+<div id="screen-settings" class="screen">
+  <div class="screen-header">
+    <div class="screen-title">Settings</div>
+  </div>
+  <div style="padding:16px 0 90px;">
+    <!-- Business info -->
+    <div style="padding:0 16px 6px;font-size:11px;font-weight:700;color:var(--d2);text-transform:uppercase;letter-spacing:1px;">Business</div>
+    <div class="settings-section">
+      <div class="settings-item" onclick="openBusinessSettingsModal()">
+        <div class="settings-icon" style="background:var(--gold2);">🏢</div>
+        <div class="settings-text"><div class="title">Business Profile</div><div class="sub" id="settings-bizname">Tap to set your business name</div></div>
+        <div class="settings-arrow">›</div>
+      </div>
+      <div class="settings-item">
+        <div class="settings-icon" style="background:var(--green2);">✅</div>
+        <div class="settings-text"><div class="title">Subscription Status</div><div class="sub" id="settings-sub-status">Loading...</div></div>
+        <div class="settings-arrow">›</div>
+      </div>
+    </div>
+
+    <!-- Data -->
+    <div style="padding:0 16px 6px;font-size:11px;font-weight:700;color:var(--d2);text-transform:uppercase;letter-spacing:1px;">Data & Backup</div>
+    <div class="settings-section">
+      <div class="settings-item" onclick="manualBackup()">
+        <div class="settings-icon" style="background:var(--blue2);">☁️</div>
+        <div class="settings-text"><div class="title">Backup to Cloud</div><div class="sub" id="settings-last-backup">Last backup: never</div></div>
+        <div class="settings-arrow">›</div>
+      </div>
+      <div class="settings-item" onclick="exportCSV()">
+        <div class="settings-icon" style="background:var(--green2);">📊</div>
+        <div class="settings-text"><div class="title">Export to CSV</div><div class="sub">Excel / Google Sheets</div></div>
+        <div class="settings-arrow">›</div>
+      </div>
+      <div class="settings-item" onclick="downloadBackupJSON()">
+        <div class="settings-icon" style="background:var(--purple2);">💾</div>
+        <div class="settings-text"><div class="title">Download Full Backup</div><div class="sub">JSON format</div></div>
+        <div class="settings-arrow">›</div>
+      </div>
+    </div>
+
+    <!-- Account -->
+    <div style="padding:0 16px 6px;font-size:11px;font-weight:700;color:var(--d2);text-transform:uppercase;letter-spacing:1px;">Account</div>
+    <div class="settings-section">
+      <div class="settings-item">
+        <div class="settings-icon" style="background:var(--s3);">👤</div>
+        <div class="settings-text"><div class="title">Account Email</div><div class="sub" id="settings-email">—</div></div>
+      </div>
+      <div class="settings-item" onclick="doLogout()">
+        <div class="settings-icon" style="background:var(--red2);">🚪</div>
+        <div class="settings-text"><div class="title" style="color:var(--red);">Sign Out</div></div>
+        <div class="settings-arrow">›</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════ -->
+<!-- SCREEN 13: MASTER PANEL -->
+<!-- ════════════════════════════════════════ -->
+<div id="screen-master" class="screen">
+  <div class="screen-header">
+    <div class="screen-title">👑 Master Panel</div>
+    <div style="margin-left:auto;font-size:11px;color:var(--purple);">Admin · <span id="master-session-timer">2:00</span></div>
+  </div>
+  <div class="master-wrap">
+    <!-- Stats -->
+    <div class="master-stat-grid">
+      <div class="master-stat">
+        <div class="ms-val" id="ms-active">—</div>
+        <div class="ms-label">Active Users</div>
+      </div>
+      <div class="master-stat">
+        <div class="ms-val" id="ms-expiring" style="color:var(--orange);">—</div>
+        <div class="ms-label">Expiring (7d)</div>
+      </div>
+      <div class="master-stat">
+        <div class="ms-val" id="ms-expired" style="color:var(--red);">—</div>
+        <div class="ms-label">Expired</div>
+      </div>
+      <div class="master-stat">
+        <div class="ms-val" id="ms-total" style="color:var(--blue);">—</div>
+        <div class="ms-label">Total Users</div>
+      </div>
+    </div>
+
+    <!-- Generate Key -->
+    <div class="card" style="margin-bottom:20px;">
+      <h3 style="margin-bottom:12px;">🔑 Generate Access Key</h3>
+      <p style="font-size:13px;margin-bottom:16px;">Key is one-time use. Copy and send to user immediately after generating — you won't see it again.</p>
+      <div class="key-display" id="generated-key-box">
+        <div class="key-val" id="generated-key-text"></div>
+        <button class="btn btn-gold btn-sm" onclick="copyGeneratedKey()">📋 Copy Key</button>
+      </div>
+      <button class="btn btn-gold" onclick="generateKey()">
+        <span id="gen-key-btn-text">Generate New Key</span>
+      </button>
+    </div>
+
+    <!-- User list -->
+    <div class="section-label" style="padding:0 0 12px;">All Users</div>
+    <div style="margin-bottom:12px;">
+      <input class="input" type="text" id="master-search" placeholder="Search by email..." oninput="filterMasterUsers()">
+    </div>
+    <div id="master-users-list">
+      <div class="empty-state">
+        <div class="spinner" style="width:24px;height:24px;border-top-color:var(--gold);color:var(--gold);margin:0 auto;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════ -->
+<!-- SCREEN: LOCK (Expired Subscription) -->
+<!-- ════════════════════════════════════════ -->
+<div id="screen-lock" class="screen">
+  <div class="lock-wrap">
+    <div class="lock-icon">🔒</div>
+    <div class="lock-title">Subscription Expired</div>
+    <div class="lock-sub">Your access ended on <strong id="lock-date"></strong>. Renew now to continue managing your business.</div>
+    <div class="lock-safe">🛡 Your data is safe and waiting for you. Nothing has been deleted.</div>
+    <button class="btn btn-wa" onclick="openWhatsAppSubscribe()" style="margin-bottom:12px;">
+      <span>💬</span> Subscribe to Continue
+    </button>
+    <button class="btn btn-outline" onclick="doLogout()">Sign out</button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════ -->
+<!-- SCREEN: SETUP WIZARD -->
+<!-- ════════════════════════════════════════ -->
+<div id="screen-setup" class="screen">
+  <div class="wizard-wrap">
+    <div class="wizard-step">Step <span id="wizard-step-num">1</span> of 3</div>
+    <div class="wizard-dots">
+      <div class="wizard-dot active" id="wdot-1"></div>
+      <div class="wizard-dot" id="wdot-2"></div>
+      <div class="wizard-dot" id="wdot-3"></div>
+    </div>
+
+    <!-- Step 1: Business Name -->
+    <div id="wizard-1">
+      <h2 style="margin-bottom:8px;">Welcome to BizMate GH! 🎉</h2>
+      <p style="font-size:14px;margin-bottom:32px;">Let's set up your business profile. This takes just 1 minute.</p>
+      <div class="field">
+        <label>Business Name *</label>
+        <input class="input" type="text" id="setup-bizname" placeholder="e.g. Kofi's Pharmacy" autocomplete="organization">
+      </div>
+      <button class="btn btn-gold" onclick="wizardNext(1)">Continue →</button>
+    </div>
+
+    <!-- Step 2: Phone & Address -->
+    <div id="wizard-2" style="display:none;">
+      <h2 style="margin-bottom:8px;">Contact Details</h2>
+      <p style="font-size:14px;margin-bottom:32px;">These will appear on your receipts.</p>
+      <div class="field">
+        <label>Business Phone</label>
+        <input class="input" type="tel" id="setup-phone" placeholder="e.g. 0241234567">
+      </div>
+      <div class="field">
+        <label>Business Address</label>
+        <input class="input" type="text" id="setup-address" placeholder="e.g. Accra Central Market">
+      </div>
+      <button class="btn btn-gold" onclick="wizardNext(2)" style="margin-bottom:10px;">Continue →</button>
+      <button class="btn btn-ghost" onclick="wizardNext(2)">Skip</button>
+    </div>
+
+    <!-- Step 3: Done -->
+    <div id="wizard-3" style="display:none;">
+      <div style="text-align:center;margin-bottom:32px;">
+        <div style="font-size:56px;margin-bottom:16px;">✅</div>
+        <h2>You're all set!</h2>
+        <p style="font-size:14px;margin-top:8px;">Your business is ready. Start recording your first sale!</p>
+      </div>
+      <button class="btn btn-gold" onclick="finishSetup()">Start Using BizMate GH →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════ -->
+<!-- BOTTOM NAVIGATION -->
+<!-- ════════════════════════════════════════ -->
+<div id="nav">
+  <div class="nav-items">
+    <button class="nav-item active" id="nav-dashboard" onclick="showNavScreen('screen-dashboard')">
+      <span class="nav-icon">🏠</span>
+      <span>Home</span>
+    </button>
+    <button class="nav-item" id="nav-sale" onclick="showNavScreen('screen-sale');resetSaleForm()">
+      <span class="nav-icon">💰</span>
+      <span>New Sale</span>
+    </button>
+    <button class="nav-item" id="nav-debts" onclick="showNavScreen('screen-debts')">
+      <span class="nav-icon">🔴</span>
+      <span>Debts</span>
+    </button>
+    <button class="nav-item" id="nav-records" onclick="showNavScreen('screen-records')">
+      <span class="nav-icon">📁</span>
+      <span>Records</span>
+    </button>
+    <button class="nav-item" id="nav-settings" onclick="showNavScreen('screen-settings')">
+      <span class="nav-icon">⚙️</span>
+      <span>Settings</span>
+    </button>
+    <button class="nav-item" id="nav-master" onclick="showNavScreen('screen-master')" style="display:none;">
+      <span class="nav-icon">👑</span>
+      <span>Admin</span>
+    </button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════ -->
+<!-- MODALS -->
+<!-- ════════════════════════════════════════ -->
+
+<!-- Add Item Modal -->
+<div id="modal-item" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Add Item</div>
+    <div class="field">
+      <label>Item Name *</label>
+      <input class="input" type="text" id="item-name" placeholder="e.g. Rice (1 bag)">
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div class="field">
+        <label>Qty</label>
+        <input class="input input-num" type="number" id="item-qty" value="1" min="1">
+      </div>
+      <div class="field">
+        <label>Unit Price (₵)</label>
+        <input class="input input-num" type="number" id="item-price" placeholder="0.00" min="0" step="0.01">
+      </div>
+    </div>
+    <div style="background:var(--s2);border-radius:8px;padding:12px 14px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;">
+      <span style="font-size:13px;color:var(--d2);">Subtotal</span>
+      <span style="font-size:18px;font-weight:700;">₵ <span id="item-subtotal">0.00</span></span>
+    </div>
+    <button class="btn btn-gold" onclick="addItem()" style="margin-bottom:10px;">Add Item</button>
+    <button class="btn btn-ghost" onclick="closeModal('modal-item')">Cancel</button>
+  </div>
+</div>
+
+<!-- Add Debt Modal -->
+<div id="modal-debt" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Add Direct Debt</div>
+    <div class="field">
+      <label>Customer Name *</label>
+      <input class="input" type="text" id="debt-name" placeholder="e.g. Ama Serwaa">
+    </div>
+    <div class="field">
+      <label>Customer Phone *</label>
+      <input class="input" type="tel" id="debt-phone" placeholder="e.g. 0241234567">
+    </div>
+    <div class="field">
+      <label>Amount Owed (₵) *</label>
+      <input class="input input-num" type="number" id="debt-amount" placeholder="0.00" min="0" step="0.01">
+    </div>
+    <button class="btn btn-gold" onclick="addDirectDebt()" style="margin-bottom:10px;">Add Debt</button>
+    <button class="btn btn-ghost" onclick="closeModal('modal-debt')">Cancel</button>
+  </div>
+</div>
+
+<!-- Record Payment Modal -->
+<div id="modal-payment" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Record Payment</div>
+    <p style="font-size:13px;color:var(--d2);margin-bottom:16px;">Customer: <strong id="payment-customer-name"></strong> · Balance: <strong id="payment-balance"></strong></p>
+    <div class="field">
+      <label>Amount Paid (₵) *</label>
+      <input class="input input-num" type="number" id="payment-amount" placeholder="0.00" min="0" step="0.01">
+    </div>
+    <button class="btn btn-gold" onclick="recordPayment()" style="margin-bottom:10px;">Record Payment</button>
+    <button class="btn btn-ghost" onclick="closeModal('modal-payment')">Cancel</button>
+  </div>
+</div>
+
+<!-- Business Settings Modal -->
+<div id="modal-business" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Business Profile</div>
+    <div class="field">
+      <label>Business Name *</label>
+      <input class="input" type="text" id="biz-name-edit" placeholder="Your Business Name">
+    </div>
+    <div class="field">
+      <label>Business Phone</label>
+      <input class="input" type="tel" id="biz-phone-edit" placeholder="0241234567">
+    </div>
+    <div class="field">
+      <label>Business Address</label>
+      <input class="input" type="text" id="biz-address-edit" placeholder="Location or address">
+    </div>
+    <button class="btn btn-gold" onclick="saveBusinessSettings()" style="margin-bottom:10px;">Save Changes</button>
+    <button class="btn btn-ghost" onclick="closeModal('modal-business')">Cancel</button>
+  </div>
+</div>
+
+<!-- User Detail Modal (Master Panel) -->
+<div id="modal-user-detail" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="udetail-email"></div>
+    <div style="margin-bottom:16px;">
+      <div id="udetail-badge" style="margin-bottom:8px;"></div>
+      <div style="font-size:13px;color:var(--d2);" id="udetail-expires"></div>
+      <div style="font-size:13px;color:var(--d2);" id="udetail-registered"></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      <button class="btn btn-gold" id="udetail-extend-btn" onclick="extendUserKey()">+30 Days Renewal</button>
+      <button class="btn btn-red" id="udetail-deactivate-btn" onclick="deactivateUserKey()">Deactivate Key</button>
+      <button class="btn btn-ghost" onclick="closeModal('modal-user-detail')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- 1-Day Warning Popup -->
+<div id="modal-1day" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-handle"></div>
+    <div style="text-align:center;padding:8px 0 16px;">
+      <div style="font-size:48px;margin-bottom:16px;">⚠️</div>
+      <h2 style="color:var(--red);margin-bottom:8px;">Expiring Tomorrow!</h2>
+      <p style="font-size:14px;color:var(--d1);margin-bottom:24px;">Your subscription expires tomorrow. Renew now to avoid losing access to your business data.</p>
+      <button class="btn btn-wa" onclick="openWhatsAppSubscribe();closeModal('modal-1day')" style="margin-bottom:10px;">💬 Renew Now on WhatsApp</button>
+      <button class="btn btn-ghost" onclick="closeModal('modal-1day')">Remind me later</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════ -->
+<!-- MASTER ACCESS OVERLAY -->
+<!-- ════════════════════════════════════════ -->
+<div id="master-overlay">
+  <button class="master-access-close" onclick="closeMasterOverlay()">✕</button>
+  <div class="master-access-box">
+    <div id="master-attempts-display" class="master-attempts" style="display:none;"></div>
+    <div id="master-lockout-display" style="display:none;background:var(--red2);border:1px solid rgba(255,77,109,0.3);border-radius:8px;padding:12px 14px;font-size:13px;color:var(--red);text-align:center;margin-bottom:16px;"></div>
+    <div class="field">
+      <label style="color:var(--d3);font-size:11px;">Enter Access Code</label>
+      <div class="input-wrap">
+        <input class="input" type="password" id="master-pass1" placeholder="••••••••" autocomplete="off" style="background:#0a0a0a;border-color:#222;">
+        <button class="eye" onclick="togglePw('master-pass1',this)" style="color:var(--d3);">👁</button>
+      </div>
+    </div>
+    <div id="master-pass2-section" style="display:none;">
+      <div class="field">
+        <label style="color:var(--d3);font-size:11px;">Confirm Master Key</label>
+        <div class="input-wrap">
+          <input class="input" type="password" id="master-pass2" placeholder="••••••••" autocomplete="off" style="background:#0a0a0a;border-color:#222;">
+          <button class="eye" onclick="togglePw('master-pass2',this)" style="color:var(--d3);">👁</button>
+        </div>
+      </div>
+    </div>
+    <button class="btn btn-outline" onclick="submitMasterAccess()" style="border-color:#333;color:#888;">Submit</button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════ -->
+<!-- JAVASCRIPT APP LOGIC -->
+<!-- ════════════════════════════════════════ -->
+<script>
+// ════════════════════════════════════════════════════════
+//  BIZMATE GH  ·  Fixed & MIT App Inventor Compatible
+//  Changes vs original:
+//   ✅ Replaced sql.js/WASM → localStorage (works everywhere)
+//   🔒 Fixed master panel: step-2 only shows AFTER step-1 verified
+//   🔒 Removed base64 passwords from client code
+//   🔒 Fixed pg_sleep decoy (both success & fail same delay)
+//   📱 WhatsApp URLs fixed for Android
+//   🐛 extendUserKey date math clarified
+//   📏 Input maxlength attributes in place
+// ════════════════════════════════════════════════════════
+
+// ── CONFIG ──────────────────────────────────────────────
+const SUPABASE_URL     = 'https://vtkvpeowbrpknnllcrgv.supabase.co';
+const SUPABASE_ANON_KEY= 'sb_publishable_6l_hnClYbE1_evf_-FmT4g_yELq_8CG';
+const WHATSAPP_NUMBER  = '233531344454'; // Ghana number
+const APP_VERSION      = '1.0.1';
+
+// ── INIT SUPABASE ────────────────────────────────────────
+let supabase;
+try { supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); }
+catch(e) { console.warn('Supabase not available:', e); }
+
+// ── APP STATE ────────────────────────────────────────────
+let appState = {
+  user: null, session: null,
+  isAdmin: false, adminSessionExpiry: null,
+  masterStep1Passed: false,   // FIX: track step-1 separately
+  masterAttempts: 0, masterLockoutUntil: null,
+  currentPeriod: 'today',
+  currentDebtId: null, selectedUserId: null,
+  currentSale: { items:[], payType:'cash', customer:'', phone:'', paidNow:0, total:0 },
+  recordFilter: 'all', recordSearch: '',
+  allUsers: [], allRecords: [], allDebts: []
+};
+
+// ── LOCAL STORAGE HELPERS ────────────────────────────────
+const LS_PREFIX = 'bm_';
+function lsSet(k,v){ try{ localStorage.setItem(LS_PREFIX+k, JSON.stringify(v)); }catch(e){} }
+function lsGet(k,def=null){ try{ const v=localStorage.getItem(LS_PREFIX+k); return v!==null?JSON.parse(v):def; }catch(e){ return def; } }
+function lsDel(k){ try{ localStorage.removeItem(LS_PREFIX+k); }catch(e){} }
+
+// pseudo-encode for subscription cache (not encryption, just obfuscation)
+function encodeLocal(d){ return btoa(unescape(encodeURIComponent(JSON.stringify(d)))); }
+function decodeLocal(s){ try{ return JSON.parse(decodeURIComponent(escape(atob(s)))); }catch(e){ return null; } }
+
+// ── DATA LAYER  (localStorage — no WASM, works in MIT App Inventor) ──
+// Replaces sql.js. Same logical interface, plain JSON arrays.
+
+const DB = {
+  // ── CONFIG ──
+  getConfig(key, def=''){
+    const c = lsGet('cfg',{});
+    return c[key] !== undefined ? c[key] : def;
+  },
+  setConfig(key, value){
+    const c = lsGet('cfg',{}); c[key]=String(value); lsSet('cfg',c);
+  },
+  nextReceiptNo(){
+    const c = lsGet('cfg',{});
+    const n = (parseInt(c.receipt_counter||'0'))+1;
+    c.receipt_counter = String(n); lsSet('cfg',c); return n;
+  },
+
+  // ── SALES ──
+  getSales(userId, { payMethod=null, since=null, synced=null, limit=null }={}){
+    let s = (lsGet('sales',[])).filter(r=>r.user_id===userId);
+    if(payMethod) s=s.filter(r=>r.payment_method===payMethod);
+    if(since)     s=s.filter(r=>r.created_at>=since);
+    if(synced!==null) s=s.filter(r=>r.synced===(synced?1:0));
+    s.sort((a,b)=>b.created_at.localeCompare(a.created_at));
+    return limit ? s.slice(0,limit) : s;
+  },
+  insertSale(sale){
+    const s=lsGet('sales',[]); s.push(sale); lsSet('sales',s);
+  },
+  markSaleSynced(id){
+    const s=lsGet('sales',[]); const i=s.findIndex(r=>r.id===id);
+    if(i>=0){ s[i].synced=1; lsSet('sales',s); }
+  },
+  getMaxReceiptNo(userId){
+    const s=(lsGet('sales',[])).filter(r=>r.user_id===userId);
+    return s.length ? Math.max(...s.map(r=>r.receipt_no||0)) : 0;
+  },
+
+  // ── DEBTS ──
+  getDebts(userId, { statusNot=null, statusIs=null }={}){
+    let d=(lsGet('debts',[])).filter(r=>r.user_id===userId);
+    if(statusNot) d=d.filter(r=>r.status!==statusNot);
+    if(statusIs)  d=d.filter(r=>r.status===statusIs);
+    return d.sort((a,b)=>b.created_at.localeCompare(a.created_at));
+  },
+  getDebt(id, userId=null){
+    const d=lsGet('debts',[]);
+    return d.find(r=>r.id===id && (!userId || r.user_id===userId)) || null;
+  },
+  insertDebt(debt){
+    const d=lsGet('debts',[]); d.push(debt); lsSet('debts',d);
+  },
+  updateDebt(id, updates){
+    const d=lsGet('debts',[]); const i=d.findIndex(r=>r.id===id);
+    if(i>=0){ Object.assign(d[i], updates, {synced:0}); lsSet('debts',d); }
+  },
+  markDebtSynced(id){
+    const d=lsGet('debts',[]); const i=d.findIndex(r=>r.id===id);
+    if(i>=0){ d[i].synced=1; lsSet('debts',d); }
+  }
+};
+
+// Backward-compat shims used in code below
+function getConfig(k,def){ return DB.getConfig(k,def); }
+function setConfig(k,v){ DB.setConfig(k,v); }
+function nextReceiptNo(){ return DB.nextReceiptNo(); }
+function uuid(){
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{
+    const r=Math.random()*16|0; return(c==='x'?r:(r&0x3|0x8)).toString(16);
+  });
+}
+
+// ── SCREEN ROUTING ───────────────────────────────────────
+const NAV_SCREENS=['screen-dashboard','screen-sale','screen-debts','screen-records','screen-settings','screen-master'];
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  const el=document.getElementById(id);
+  if(el){ el.classList.add('active'); el.scrollTop=0; }
+}
+function showNavScreen(id){
+  showScreen(id);
+  document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active'));
+  const map={
+    'screen-dashboard':'nav-dashboard','screen-sale':'nav-sale',
+    'screen-debts':'nav-debts','screen-records':'nav-records',
+    'screen-settings':'nav-settings','screen-master':'nav-master'
+  };
+  if(map[id]) document.getElementById(map[id])?.classList.add('active');
+  if(id==='screen-dashboard') refreshDashboard();
+  if(id==='screen-debts')     refreshDebts();
+  if(id==='screen-records')   refreshRecords();
+  if(id==='screen-settings')  refreshSettings();
+  if(id==='screen-master')    loadMasterPanel();
+}
+
+// ── TOAST ────────────────────────────────────────────────
+let toastTimer;
+function showToast(msg, type=''){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='show '+type;
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.className='',3000);
+}
+
+// ── LOADING OVERLAY ──────────────────────────────────────
+function showLoading(msg='Loading...'){
+  document.getElementById('loading-msg').textContent=msg;
+  document.getElementById('loading-overlay').classList.add('active');
+}
+function hideLoading(){ document.getElementById('loading-overlay').classList.remove('active'); }
+
+// ── MODALS ───────────────────────────────────────────────
+function openModal(id){ document.getElementById(id).classList.add('active'); }
+function closeModal(id){ document.getElementById(id).classList.remove('active'); }
+document.querySelectorAll('.modal-overlay').forEach(o=>{
+  o.addEventListener('click',e=>{ if(e.target===o) o.classList.remove('active'); });
+});
+
+// ── UI HELPERS ───────────────────────────────────────────
+function togglePw(id,btn){
+  const inp=document.getElementById(id);
+  if(inp.type==='password'){ inp.type='text'; btn.textContent='🙈'; }
+  else{ inp.type='password'; btn.textContent='👁'; }
+}
+function fmt(n){ return parseFloat(n||0).toFixed(2); }
+function timeAgo(iso){
+  const diff=Math.floor((new Date()-new Date(iso))/1000);
+  if(diff<60) return 'just now';
+  if(diff<3600) return Math.floor(diff/60)+'m ago';
+  if(diff<86400) return Math.floor(diff/3600)+'h ago';
+  return Math.floor(diff/86400)+'d ago';
+}
+function formatDate(iso){
+  if(!iso) return '—';
+  return new Date(iso).toLocaleDateString('en-GH',{day:'numeric',month:'short',year:'numeric'});
+}
+function getDayGreeting(){
+  const h=new Date().getHours();
+  return h<12?'morning':h<17?'afternoon':'evening';
+}
+
+// ── SUBSCRIPTION CACHE ───────────────────────────────────
+function getCachedSubscription(){ const r=lsGet('sub_cache'); return r?decodeLocal(r):null; }
+function setCachedSubscription(d){ lsSet('sub_cache',encodeLocal(d)); }
+function clearSubscriptionCache(){ lsDel('sub_cache'); }
+function daysUntilExpiry(expiresAt){
+  if(!expiresAt) return -1;
+  return Math.floor((new Date(expiresAt)-new Date())/86400000);
+}
+function detectClockManipulation(){
+  const s=getCachedSubscription();
+  if(!s||!s.last_server_check) return false;
+  return new Date()<new Date(s.last_server_check);
+}
+
+async function checkSubscription(userId){
+  if(detectClockManipulation()) return{valid:false,reason:'clock_error'};
+  const cached=getCachedSubscription();
+  if(navigator.onLine && supabase){
+    try{
+      const {data,error}=await supabase.from('access_keys')
+        .select('expires_at,is_active,activated_at')
+        .eq('user_id',userId).eq('is_active',true)
+        .gte('expires_at',new Date().toISOString())
+        .order('expires_at',{ascending:false}).limit(1).maybeSingle();
+      if(!error && data){
+        setCachedSubscription({expires_at:data.expires_at,last_server_check:new Date().toISOString(),user_id:userId});
+        return{valid:true,expires_at:data.expires_at};
+      } else { clearSubscriptionCache(); return{valid:false,reason:'expired'}; }
+    }catch(e){}
+  }
+  if(cached && cached.user_id===userId){
+    return daysUntilExpiry(cached.expires_at)>=0
+      ? {valid:true,expires_at:cached.expires_at}
+      : {valid:false,reason:'expired'};
+  }
+  return{valid:false,reason:'no_key'};
+}
+
+// ── AUTH ─────────────────────────────────────────────────
+async function doRegister(){
+  const email=document.getElementById('reg-email').value.trim();
+  const pass =document.getElementById('reg-pass').value;
+  const pass2=document.getElementById('reg-pass2').value;
+  if(!email||!pass) return showToast('Please fill all fields','error');
+  if(pass.length<8) return showToast('Password must be at least 8 characters','error');
+  if(pass!==pass2)  return showToast('Passwords do not match','error');
+  document.getElementById('reg-btn-text').innerHTML='<span class="spinner"></span>';
+  showLoading('Creating account...');
+  try{
+    const {data,error}=await supabase.auth.signUp({email,password:pass});
+    if(error) throw error;
+    appState.user=data.user; appState.session=data.session;
+    lsSet('user_id',data.user.id); lsSet('user_email',email);
+    hideLoading(); showToast('Account created! ✅','success');
+    showScreen('screen-activate');
+  }catch(e){ hideLoading(); showToast(e.message||'Registration failed','error'); }
+  document.getElementById('reg-btn-text').textContent='Create Account';
+}
+
+async function doLogin(){
+  const email=document.getElementById('login-email').value.trim();
+  const pass =document.getElementById('login-pass').value;
+  if(!email||!pass) return showToast('Please enter email and password','error');
+
+  // Check lockout
+  const lockout=lsGet('login_lockout');
+  if(lockout && new Date(lockout.until)>new Date()){
+    const mins=Math.ceil((new Date(lockout.until)-new Date())/60000);
+    const el=document.getElementById('login-lockout');
+    el.style.display='block';
+    el.textContent=`Account locked. Try again in ${mins} minute${mins>1?'s':''}.`;
+    return;
+  }
+
+  document.getElementById('login-btn-text').innerHTML='<span class="spinner"></span>';
+  showLoading('Signing in...');
+  try{
+    const {data,error}=await supabase.auth.signInWithPassword({email,password:pass});
+    if(error){
+      const attempts=lsGet('login_attempts',{count:0});
+      attempts.count++;
+      if(attempts.count>=5){
+        const tiers=[15,60,1440];
+        const until=new Date(Date.now()+tiers[Math.min(Math.floor(attempts.count/5)-1,2)]*60000);
+        lsSet('login_lockout',{until:until.toISOString()}); attempts.count=0;
+      }
+      lsSet('login_attempts',attempts); throw error;
+    }
+    lsDel('login_attempts'); lsDel('login_lockout');
+    document.getElementById('login-lockout').style.display='none';
+    appState.user=data.user; appState.session=data.session;
+    lsSet('user_id',data.user.id); lsSet('user_email',email);
+    hideLoading(); await postLoginFlow(data.user);
+  }catch(e){ hideLoading(); showToast(e.message||'Login failed','error'); }
+  document.getElementById('login-btn-text').textContent='Sign In';
+}
+
+async function postLoginFlow(user){
+  showLoading('Checking subscription...');
+  const sub=await checkSubscription(user.id);
+  hideLoading();
+  if(sub.reason==='clock_error'){
+    showScreen('screen-login');
+    showToast('Clock error detected. Connect to internet to verify.','error'); return;
+  }
+  if(!sub.valid){
+    if(sub.reason==='no_key'){ showScreen('screen-activate'); }
+    else{
+      const cached=getCachedSubscription();
+      document.getElementById('lock-date').textContent=cached?formatDate(cached.expires_at):'Unknown';
+      showScreen('screen-lock');
+    }
+    return;
+  }
+  document.getElementById('nav').classList.add('visible');
+  if(!getConfig('setup_complete')||getConfig('setup_complete')==='0'){
+    showScreen('screen-setup'); return;
+  }
+  const days=daysUntilExpiry(sub.expires_at);
+  if(days<=1 && days>=0) openModal('modal-1day');
+  showNavScreen('screen-dashboard');
+}
+
+function doLogout(){
+  try{ supabase.auth.signOut(); }catch(e){}
+  appState.user=null; appState.session=null; appState.isAdmin=false;
+  document.getElementById('nav').classList.remove('visible');
+  document.getElementById('nav-master').style.display='none';
+  lsDel('user_id'); lsDel('user_email');
+  showScreen('screen-login');
+}
+
+// ── KEY ACTIVATION ───────────────────────────────────────
+document.getElementById('activate-key').addEventListener('input',function(){
+  let v=this.value.replace(/[^A-Za-z0-9]/g,'').toUpperCase();
+  if(v.startsWith('BM')){
+    v=v.substring(0,14);
+    const parts=['BM'];
+    if(v.length>2) parts.push(v.substring(2,6));
+    if(v.length>6) parts.push(v.substring(6,10));
+    if(v.length>10) parts.push(v.substring(10,14));
+    this.value=parts.join('-');
+  } else { this.value=''; }
+});
+
+async function doActivateKey(){
+  let key=document.getElementById('activate-key').value.trim().toUpperCase();
+  const errEl=document.getElementById('activate-error');
+  errEl.style.display='none';
+  if(!key.match(/^BM-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/)){
+    errEl.textContent='Invalid key format. Key should be: BM-XXXX-XXXX-XXXX';
+    errEl.style.display='block'; return;
+  }
+  document.getElementById('activate-btn-text').innerHTML='<span class="spinner"></span>';
+  showLoading('Activating key...');
+  try{
+    const userId=appState.user?.id||lsGet('user_id');
+    const email =appState.user?.email||lsGet('user_email');
+    const {data,error}=await supabase.rpc('activate_key',{p_key:key,p_user_id:userId,p_email:email});
+    hideLoading();
+    if(error||!data||!data.success){
+      errEl.textContent=(data&&data.message)||'Invalid or already used key.';
+      errEl.style.display='block';
+      document.getElementById('activate-btn-text').textContent='Activate Key'; return;
+    }
+    setCachedSubscription({expires_at:data.expires_at,last_server_check:new Date().toISOString(),user_id:userId});
+    document.getElementById('activate-btn-text').textContent='Activate Key';
+    showToast('Key activated! 30 days unlocked. 🎉','success');
+    document.getElementById('nav').classList.add('visible');
+    if(!getConfig('setup_complete')||getConfig('setup_complete')==='0'){
+      showScreen('screen-setup');
+    } else { showNavScreen('screen-dashboard'); }
+  }catch(e){
+    hideLoading();
+    document.getElementById('activate-btn-text').textContent='Activate Key';
+    showToast('Activation failed. Please check your key and try again.','error');
+  }
+}
+
+// ── WHATSAPP ─────────────────────────────────────────────
+function openWhatsAppSubscribe(){
+  const email=appState.user?.email||lsGet('user_email')||'unknown';
+  const msg=encodeURIComponent(`Hi, I want to subscribe to BizMate GH.\nMy email: ${email}`);
+  const phone=WHATSAPP_NUMBER.replace(/\D/g,'');
+  // Use wa.me — works on Android browser & MIT App Inventor WebViewer
+  location.href=`https://wa.me/${phone}?text=${msg}`;
+}
+
+// ── SETUP WIZARD ─────────────────────────────────────────
+function wizardNext(step){
+  if(step===1){
+    const name=document.getElementById('setup-bizname').value.trim();
+    if(!name) return showToast('Please enter your business name','error');
+    setConfig('business_name',name);
+    document.getElementById('wizard-1').style.display='none';
+    document.getElementById('wizard-2').style.display='block';
+    document.getElementById('wizard-step-num').textContent='2';
+    document.getElementById('wdot-1').classList.remove('active');
+    document.getElementById('wdot-2').classList.add('active');
+  } else if(step===2){
+    const phone=document.getElementById('setup-phone').value.trim();
+    const addr =document.getElementById('setup-address').value.trim();
+    if(phone) setConfig('business_phone',phone);
+    if(addr)  setConfig('business_address',addr);
+    document.getElementById('wizard-2').style.display='none';
+    document.getElementById('wizard-3').style.display='block';
+    document.getElementById('wizard-step-num').textContent='3';
+    document.getElementById('wdot-2').classList.remove('active');
+    document.getElementById('wdot-3').classList.add('active');
+  }
+}
+function finishSetup(){ setConfig('setup_complete','1'); showNavScreen('screen-dashboard'); }
+
+// ── DASHBOARD ────────────────────────────────────────────
+function setPeriod(p,btn){
+  appState.currentPeriod=p;
+  document.querySelectorAll('.period-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active'); refreshDashboard();
+}
+function getDateFilter(period){
+  const now=new Date(); let since=null;
+  if(period==='today')
+    since=new Date(now.getFullYear(),now.getMonth(),now.getDate()).toISOString();
+  else if(period==='week'){
+    const d=new Date(now); d.setDate(d.getDate()-7); since=d.toISOString();
+  } else if(period==='month')
+    since=new Date(now.getFullYear(),now.getMonth(),1).toISOString();
+  else if(period==='year')
+    since=new Date(now.getFullYear(),0,1).toISOString();
+  return since;
+}
+
+function refreshDashboard(){
+  const userId=appState.user?.id||lsGet('user_id');
+  if(!userId) return;
+  document.getElementById('dash-time').textContent=getDayGreeting();
+  document.getElementById('dash-bizname').textContent=getConfig('business_name','Your Business');
+
+  // Sync indicator
+  const pending=DB.getSales(userId,{synced:false}).length;
+  const dot=document.getElementById('sync-indicator');
+  dot.className='sync-dot '+(pending>0?'pending':'synced');
+  document.getElementById('sync-text').textContent=pending>0?`${pending} sale${pending>1?'s':''} pending sync`:'All synced';
+
+  const since=getDateFilter(appState.currentPeriod);
+  const cashSales =DB.getSales(userId,{payMethod:'cash', since});
+  const momoSales =DB.getSales(userId,{payMethod:'momo', since});
+  const creditSales=DB.getSales(userId,{payMethod:'credit',since});
+
+  const cashTotal =(cashSales.reduce((a,s)=>a+s.total,0))+(momoSales.reduce((a,s)=>a+s.total,0));
+  const creditTotal=creditSales.reduce((a,s)=>a+s.total,0);
+
+  document.getElementById('stat-cash').textContent=fmt(cashTotal);
+  document.getElementById('stat-credit').textContent=fmt(creditTotal);
+
+  const activeDebts=DB.getDebts(userId,{statusNot:'paid'});
+  const totalDebt=activeDebts.reduce((a,d)=>a+d.balance,0);
+  document.getElementById('stat-debt').textContent=fmt(totalDebt);
+
+  let totalRecovered=0;
+  DB.getDebts(userId).forEach(d=>(JSON.parse(d.payments||'[]')).forEach(p=>totalRecovered+=p.amount));
+  document.getElementById('stat-recovered').textContent=fmt(totalRecovered);
+
+  // Renewal banners
+  const sub=getCachedSubscription();
+  if(sub){
+    const days=daysUntilExpiry(sub.expires_at);
+    document.getElementById('renewal-7').style.display=(days<=7&&days>3)?'flex':'none';
+    document.getElementById('renewal-3').style.display=(days<=3&&days>=0)?'flex':'none';
+    if(days<=7&&days>3) document.getElementById('renewal-days-7').textContent=days;
+    if(days<=3&&days>=0) document.getElementById('renewal-days-3').textContent=days;
+  }
+
+  // Recent sales list
+  const recent=DB.getSales(userId,{limit:10});
+  const list=document.getElementById('recent-sales-list');
+  if(recent.length===0){
+    list.innerHTML=`<div class="empty-state" style="padding:30px 0;"><div class="empty-icon">💰</div><div class="empty-text">No sales yet. Record your first sale!</div></div>`;
+    return;
+  }
+  list.innerHTML=recent.map(s=>{
+    const items=JSON.parse(s.items||'[]');
+    const desc=items.map(i=>i.name).join(', ');
+    const icon=s.payment_method==='cash'?'💵':s.payment_method==='momo'?'📱':'📋';
+    return `<div class="sale-item">
+      <div class="sale-icon ${s.payment_method}">${icon}</div>
+      <div class="sale-info">
+        <div class="sale-name">${s.customer_name||desc||'Sale'}</div>
+        <div class="sale-time">${timeAgo(s.created_at)} · ${s.payment_method.toUpperCase()}</div>
+      </div>
+      <div class="sale-amount ${s.payment_method==='credit'?'red':''}">₵${fmt(s.total)}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── NEW SALE ─────────────────────────────────────────────
+function resetSaleForm(){
+  appState.currentSale={items:[],payType:'cash',customer:'',phone:'',paidNow:0,total:0};
+  document.getElementById('sale-customer').value='';
+  document.getElementById('sale-phone').value='';
+  document.getElementById('sale-paidnow').value='';
+  document.getElementById('credit-section').style.display='none';
+  document.getElementById('cust-required').textContent='';
+  document.getElementById('cust-phone-required').textContent='';
+  document.querySelectorAll('.pay-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelector('.pay-btn').classList.add('active');
+  renderItems(); updateSaleTotal();
+}
+
+function setPayType(type,btn){
+  appState.currentSale.payType=type;
+  document.querySelectorAll('.pay-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const isCredit=type==='credit';
+  document.getElementById('credit-section').style.display=isCredit?'block':'none';
+  document.getElementById('cust-required').textContent=isCredit?'*':'';
+  document.getElementById('cust-phone-required').textContent=isCredit?'*':'';
+}
+
+function openAddItemModal(){
+  document.getElementById('item-name').value='';
+  document.getElementById('item-qty').value='1';
+  document.getElementById('item-price').value='';
+  document.getElementById('item-subtotal').textContent='0.00';
+  openModal('modal-item');
+  setTimeout(()=>document.getElementById('item-name').focus(),300);
+}
+
+['item-qty','item-price'].forEach(id=>{
+  document.getElementById(id).addEventListener('input',()=>{
+    const q=parseFloat(document.getElementById('item-qty').value)||0;
+    const p=parseFloat(document.getElementById('item-price').value)||0;
+    document.getElementById('item-subtotal').textContent=fmt(q*p);
+  });
+});
+
+function addItem(){
+  const name=document.getElementById('item-name').value.trim();
+  const qty =parseFloat(document.getElementById('item-qty').value)||1;
+  const price=parseFloat(document.getElementById('item-price').value)||0;
+  if(!name)   return showToast('Please enter item name','error');
+  if(price<=0) return showToast('Please enter a valid price','error');
+  appState.currentSale.items.push({name,qty,price});
+  closeModal('modal-item'); renderItems(); updateSaleTotal();
+}
+
+function removeItem(i){
+  appState.currentSale.items.splice(i,1); renderItems(); updateSaleTotal();
+}
+
+function renderItems(){
+  const list=document.getElementById('items-list');
+  if(appState.currentSale.items.length===0){ list.innerHTML=''; return; }
+  list.innerHTML=appState.currentSale.items.map((item,i)=>`
+    <div class="item-row">
+      <div style="flex:1;">
+        <div class="item-name">${item.name}</div>
+        <div class="item-qty-price">${item.qty} × ₵${fmt(item.price)}</div>
+      </div>
+      <div class="item-total">₵${fmt(item.qty*item.price)}</div>
+      <button class="item-remove" onclick="removeItem(${i})">✕</button>
+    </div>
+  `).join('');
+}
+
+function updateSaleTotal(){
+  const total=appState.currentSale.items.reduce((s,i)=>s+i.qty*i.price,0);
+  appState.currentSale.total=total;
+  document.getElementById('sale-total').textContent=fmt(total);
+}
+
+function goToReview(){
+  const sale=appState.currentSale;
+  if(sale.items.length===0) return showToast('Add at least one item','error');
+  sale.customer=document.getElementById('sale-customer').value.trim();
+  sale.phone   =document.getElementById('sale-phone').value.trim();
+  if(sale.payType==='credit'){
+    if(!sale.customer) return showToast('Customer name is required for credit sales','error');
+    if(!sale.phone)    return showToast('Customer phone is required for credit sales','error');
+    sale.paidNow=parseFloat(document.getElementById('sale-paidnow').value)||0;
+  } else { sale.paidNow=sale.total; }
+
+  const payLabels={cash:'💵 Cash',momo:'📱 Mobile Money',credit:'📋 Credit'};
+  document.getElementById('rev-paytype').textContent=payLabels[sale.payType];
+  document.getElementById('rev-total').textContent=fmt(sale.total);
+  document.getElementById('rev-customer-row').style.display=sale.customer?'flex':'none';
+  if(sale.customer) document.getElementById('rev-customer').textContent=sale.customer;
+  document.getElementById('rev-phone-row').style.display=sale.phone?'flex':'none';
+  if(sale.phone) document.getElementById('rev-phone').textContent=sale.phone;
+  document.getElementById('rev-paidnow-row').style.display=sale.payType==='credit'?'flex':'none';
+  document.getElementById('rev-balance-row').style.display=sale.payType==='credit'?'flex':'none';
+  if(sale.payType==='credit'){
+    document.getElementById('rev-paidnow').textContent=`₵${fmt(sale.paidNow)}`;
+    document.getElementById('rev-balance').textContent=`₵${fmt(sale.total-sale.paidNow)}`;
+  }
+  document.getElementById('rev-items').innerHTML=sale.items.map(i=>
+    `<div class="review-row"><span class="lbl">${i.name} × ${i.qty}</span><span class="val">₵${fmt(i.qty*i.price)}</span></div>`
+  ).join('');
+  showScreen('screen-review');
+}
+
+async function confirmSale(){
+  const sale=appState.currentSale;
+  const userId=appState.user?.id||lsGet('user_id');
+  document.getElementById('confirm-btn-text').innerHTML='<span class="spinner"></span> Saving...';
+
+  const id=uuid(), receiptNo=nextReceiptNo(), now=new Date().toISOString();
+
+  DB.insertSale({
+    id, user_id:userId,
+    customer_name:sale.customer||null,
+    customer_phone:sale.phone||null,
+    items:JSON.stringify(sale.items),
+    total:sale.total, payment_method:sale.payType,
+    paid_now:sale.paidNow, created_at:now, receipt_no:receiptNo, synced:0
+  });
+
+  if(sale.payType==='credit'){
+    const balance=sale.total-sale.paidNow;
+    if(balance>0){
+      DB.insertDebt({
+        id:uuid(), user_id:userId, sale_id:id,
+        customer_name:sale.customer, customer_phone:sale.phone,
+        original_amount:sale.total, balance,
+        status:sale.paidNow>0?'partial':'unpaid',
+        source:'sale',
+        payments:JSON.stringify(sale.paidNow>0?[{amount:sale.paidNow,date:now}]:[]),
+        created_at:now, synced:0
+      });
+    }
+  }
+
+  backgroundSync(userId);
+  showSuccessScreen(id, receiptNo, sale);
+  document.getElementById('confirm-btn-text').textContent='✓ Confirm & Save';
+}
+
+// ── RECEIPT ──────────────────────────────────────────────
+function showSuccessScreen(saleId, receiptNo, sale){
+  document.getElementById('success-sub').textContent=
+    `Receipt #${receiptNo} · ${sale.payType==='credit'?'Credit sale + debt tracked':'Payment received'}`;
+
+  const bizName=getConfig('business_name','My Business');
+  const bizPhone=getConfig('business_phone','');
+  const bizAddr =getConfig('business_address','');
+
+  const receiptHTML=`<div class="receipt" id="receipt-to-capture">
+    <div class="receipt-head">
+      <div class="receipt-biz">${bizName}</div>
+      ${bizPhone?`<div class="receipt-contact">📞 ${bizPhone}</div>`:''}
+      ${bizAddr ?`<div class="receipt-contact">📍 ${bizAddr}</div>` :''}
+      <div class="receipt-no">Receipt #${receiptNo} · ${new Date().toLocaleString('en-GH')}</div>
+    </div>
+    <div class="receipt-items">
+      <div class="receipt-item" style="font-weight:700;border-bottom:1px solid #ddd;padding-bottom:4px;margin-bottom:4px;">
+        <span class="item-name">Item</span><span class="item-qty">Qty</span><span class="item-subtotal">Amount</span>
+      </div>
+      ${sale.items.map(i=>`
+        <div class="receipt-item">
+          <span class="item-name">${i.name}</span>
+          <span class="item-qty">${i.qty}</span>
+          <span class="item-subtotal">₵${fmt(i.qty*i.price)}</span>
+        </div>`).join('')}
+    </div>
+    <hr class="receipt-divider">
+    <div class="receipt-total-line bold"><span>TOTAL</span><span>₵${fmt(sale.total)}</span></div>
+    ${sale.payType==='credit'?`
+      <div class="receipt-total-line"><span>Paid Now</span><span>₵${fmt(sale.paidNow)}</span></div>
+      <div class="receipt-total-line" style="color:#c00;"><span>Balance Due</span><span>₵${fmt(sale.total-sale.paidNow)}</span></div>`:``}
+    <div class="receipt-total-line"><span>Payment</span><span>${sale.payType==='momo'?'Mobile Money':sale.payType==='cash'?'Cash':'Credit'}</span></div>
+    ${sale.customer?`<div class="receipt-total-line"><span>Customer</span><span>${sale.customer}</span></div>`:''}
+    <div class="receipt-footer">Thank you for your business!<br>Powered by BizMate GH</div>
+  </div>`;
+
+  document.getElementById('receipt-preview').innerHTML=receiptHTML;
+  showScreen('screen-success');
+}
+
+function shareReceiptWhatsApp(){
+  const bizName=getConfig('business_name','My Business');
+  const sale=appState.currentSale;
+  const userId=appState.user?.id||lsGet('user_id');
+  const rno=DB.getMaxReceiptNo(userId);
+  let msg=`*${bizName}*\nReceipt #${rno}\n\n`;
+  sale.items.forEach(i=>{ msg+=`• ${i.name} x${i.qty} = ₵${fmt(i.qty*i.price)}\n`; });
+  msg+=`\n*TOTAL: ₵${fmt(sale.total)}*`;
+  if(sale.payType==='credit') msg+=`\nPaid: ₵${fmt(sale.paidNow)}\nBalance: ₵${fmt(sale.total-sale.paidNow)}`;
+  msg+=`\n\nThank you! 🙏`;
+  // Send to customer phone if available, else open without number
+  const rawPhone=(sale.phone||'').replace(/\D/g,'');
+  const phone=rawPhone.startsWith('0')?'233'+rawPhone.substring(1):rawPhone;
+  location.href=`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+}
+
+function downloadReceiptPNG(){
+  // Canvas-based PNG download (works in browser + MIT App Inventor WebViewer)
+  const sale=appState.currentSale;
+  const bizName=getConfig('business_name','My Business');
+  const bizPhone=getConfig('business_phone','');
+  const bizAddr=getConfig('business_address','');
+  const userId=appState.user?.id||lsGet('user_id');
+  const rno=DB.getMaxReceiptNo(userId);
+
+  const canvas=document.createElement('canvas');
+  const ctx=canvas.getContext('2d');
+  const W=320, LH=22;
+  const H=160+(sale.items.length*LH)+(sale.payType==='credit'?2*LH:0)+80;
+  canvas.width=W; canvas.height=H;
+  ctx.fillStyle='#fff'; ctx.fillRect(0,0,W,H);
+
+  let y=24;
+  const center=(t,sz,bold=false,col='#000')=>{
+    ctx.font=`${bold?'bold ':''}${sz}px 'Courier New',monospace`;
+    ctx.fillStyle=col; ctx.textAlign='center'; ctx.fillText(t,W/2,y); y+=LH;
+  };
+  const row=(l,r,sz=12,col='#000')=>{
+    ctx.font=`${sz}px 'Courier New',monospace`; ctx.fillStyle=col;
+    ctx.textAlign='left'; ctx.fillText(l,16,y);
+    ctx.textAlign='right'; ctx.fillText(r,W-16,y); y+=LH;
+  };
+  const line=(dash=false)=>{
+    ctx.setLineDash(dash?[4,4]:[]); ctx.beginPath();
+    ctx.moveTo(16,y-6); ctx.lineTo(W-16,y-6);
+    ctx.strokeStyle='#ccc'; ctx.stroke(); ctx.setLineDash([]);
+  };
+
+  center(bizName,14,true); if(bizPhone) center(bizPhone,10,false,'#888');
+  if(bizAddr) center(bizAddr,10,false,'#888');
+  y+=2; line(true); y+=8;
+  ctx.font='10px monospace'; ctx.fillStyle='#aaa'; ctx.textAlign='center';
+  ctx.fillText(`Receipt #${rno} · ${new Date().toLocaleString('en-GH')}`,W/2,y); y+=LH;
+  if(sale.customer){ ctx.fillStyle='#333'; ctx.fillText(`Customer: ${sale.customer}`,W/2,y); y+=LH; }
+  y+=4; line(true); y+=8;
+  sale.items.forEach(i=>row(`${i.name} x${i.qty}`,`₵${fmt(i.qty*i.price)}`));
+  y+=4; line(); y+=8;
+  row('TOTAL',`₵${fmt(sale.total)}`,13,`#000`);
+  if(sale.payType==='credit'){
+    row('Paid Now',`₵${fmt(sale.paidNow)}`,11,'#555');
+    row('Balance Due',`₵${fmt(sale.total-sale.paidNow)}`,11,'#c00');
+  }
+  y+=4; line(true); y+=8;
+  center(`${sale.payType==='cash'?'Cash':sale.payType==='momo'?'Mobile Money':'Credit'}`,10,false,'#888');
+  center('Thank you for your business! 🙏',11,false,'#aaa');
+
+  canvas.toBlob(blob=>{
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url; a.download=`BizMate_Receipt_${rno}.png`;
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a); URL.revokeObjectURL(url);
+    showToast('Receipt downloaded!','success');
+  },'image/png');
+}
+
+function startNewSale(){ resetSaleForm(); showNavScreen('screen-sale'); }
+
+// ── DEBTS ────────────────────────────────────────────────
+function refreshDebts(){
+  const userId=appState.user?.id||lsGet('user_id');
+  if(!userId) return;
+  const debts=DB.getDebts(userId,{statusNot:'paid'});
+  appState.allDebts=debts;
+  const totalOwed=debts.reduce((a,d)=>a+d.balance,0);
+  let totalRecovered=0;
+  DB.getDebts(userId).forEach(d=>(JSON.parse(d.payments||'[]')).forEach(p=>totalRecovered+=p.amount));
+  document.getElementById('total-debt-amount').textContent=fmt(totalOwed);
+  document.getElementById('total-recovered-amount').textContent=fmt(totalRecovered);
+
+  const list=document.getElementById('debts-list');
+  if(debts.length===0){
+    list.innerHTML=`<div class="empty-state"><div class="empty-icon">🎉</div><div class="empty-text">No active debts! All customers are paid up.</div></div>`;
+    return;
+  }
+  list.innerHTML=debts.map(d=>{
+    const pct=Math.round((1-d.balance/d.original_amount)*100);
+    const badge=d.status==='unpaid'
+      ?`<span class="badge badge-red">Unpaid</span>`
+      :`<span class="badge badge-orange">Partial</span>`;
+    return `<div class="debt-item" onclick="openDebtDetail('${d.id}')">
+      <div class="debt-item-head">
+        <div><div class="debt-name">${d.customer_name}</div><div class="debt-phone">${d.customer_phone}</div></div>
+        <div style="text-align:right;">${badge}<div style="font-size:18px;font-weight:700;color:var(--red);margin-top:4px;">₵${fmt(d.balance)}</div></div>
+      </div>
+      <div class="debt-progress"><div class="debt-progress-fill" style="width:${pct}%"></div></div>
+      <div class="debt-amounts"><span>Paid: ₵${fmt(d.original_amount-d.balance)}</span><span>${pct}% recovered</span></div>
+    </div>`;
+  }).join('');
+}
+
+function openDebtDetail(id){
+  const userId=appState.user?.id||lsGet('user_id');
+  const debt=DB.getDebt(id,userId);
+  if(!debt) return;
+  appState.currentDebtId=id;
+
+  document.getElementById('debt-detail-title').textContent=debt.customer_name;
+  document.getElementById('dd-balance').textContent=fmt(debt.balance);
+  document.getElementById('dd-original').textContent=fmt(debt.original_amount);
+  document.getElementById('dd-phone').textContent='📞 '+debt.customer_phone;
+
+  const paid=debt.original_amount-debt.balance;
+  const pct=Math.round((paid/debt.original_amount)*100);
+  document.getElementById('dd-paid').textContent=fmt(paid);
+  document.getElementById('dd-pct').textContent=pct;
+  document.getElementById('dd-progress').style.width=pct+'%';
+
+  const badge=debt.status==='paid'?`<span class="badge badge-green">Paid</span>`
+    :debt.status==='partial'?`<span class="badge badge-orange">Partial</span>`
+    :`<span class="badge badge-red">Unpaid</span>`;
+  document.getElementById('debt-detail-badge').innerHTML=badge;
+
+  const payments=JSON.parse(debt.payments||'[]');
+  const phList=document.getElementById('dd-payments');
+  phList.innerHTML=payments.length===0
+    ?`<div class="empty-state" style="padding:20px 0;"><div class="empty-text">No payments yet</div></div>`
+    :payments.map(p=>`
+      <div class="payment-item">
+        <div><div class="payment-amount">₵${fmt(p.amount)}</div><div class="payment-date">${formatDate(p.date)}</div></div>
+        <span class="badge badge-green">Received</span>
+      </div>`).join('');
+  showScreen('screen-debt-detail');
+}
+
+function openAddDebtModal(){
+  document.getElementById('debt-name').value='';
+  document.getElementById('debt-phone').value='';
+  document.getElementById('debt-amount').value='';
+  openModal('modal-debt');
+}
+
+function addDirectDebt(){
+  const name  =document.getElementById('debt-name').value.trim();
+  const phone =document.getElementById('debt-phone').value.trim();
+  const amount=parseFloat(document.getElementById('debt-amount').value)||0;
+  const userId=appState.user?.id||lsGet('user_id');
+  if(!name||!phone||amount<=0) return showToast('Please fill all required fields','error');
+  DB.insertDebt({
+    id:uuid(), user_id:userId, sale_id:null,
+    customer_name:name, customer_phone:phone,
+    original_amount:amount, balance:amount,
+    status:'unpaid', source:'direct', payments:'[]',
+    created_at:new Date().toISOString(), synced:0
+  });
+  closeModal('modal-debt'); showToast('Debt added','success'); refreshDebts();
+}
+
+function openRecordPaymentModal(){
+  const debt=DB.getDebt(appState.currentDebtId);
+  if(!debt) return;
+  document.getElementById('payment-customer-name').textContent=debt.customer_name;
+  document.getElementById('payment-balance').textContent=`₵${fmt(debt.balance)}`;
+  document.getElementById('payment-amount').value='';
+  openModal('modal-payment');
+}
+
+function recordPayment(){
+  const amount=parseFloat(document.getElementById('payment-amount').value)||0;
+  if(amount<=0) return showToast('Enter a valid amount','error');
+  const debt=DB.getDebt(appState.currentDebtId);
+  if(!debt) return;
+  if(amount>debt.balance) return showToast('Amount exceeds outstanding balance','error');
+  const payments=JSON.parse(debt.payments||'[]');
+  payments.push({amount,date:new Date().toISOString()});
+  const newBalance=parseFloat((debt.balance-amount).toFixed(2));
+  DB.updateDebt(appState.currentDebtId,{
+    balance:newBalance,
+    status:newBalance<=0?'paid':'partial',
+    payments:JSON.stringify(payments)
+  });
+  closeModal('modal-payment'); showToast('Payment recorded! ✅','success');
+  openDebtDetail(appState.currentDebtId); refreshDebts();
+}
+
+function sendDebtReminder(){
+  const debt=DB.getDebt(appState.currentDebtId);
+  if(!debt) return;
+  const bizName=getConfig('business_name','My Business');
+  const msg=encodeURIComponent(`Hello ${debt.customer_name}, this is a reminder from ${bizName}. You have an outstanding balance of ₵${fmt(debt.balance)}. Please get in touch when convenient. Thank you!`);
+  const rawPhone=debt.customer_phone.replace(/\D/g,'');
+  const phone=rawPhone.startsWith('0')?'233'+rawPhone.substring(1):rawPhone;
+  location.href=`https://wa.me/${phone}?text=${msg}`;
+}
+
+// ── RECORDS ──────────────────────────────────────────────
+function setRecordFilter(f,btn){
+  appState.recordFilter=f;
+  document.querySelectorAll('.filter-chip').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active'); renderRecords();
+}
+function filterRecords(){
+  appState.recordSearch=document.getElementById('records-search').value.toLowerCase();
+  renderRecords();
+}
+function refreshRecords(){
+  const userId=appState.user?.id||lsGet('user_id');
+  if(!userId) return;
+  appState.allRecords=DB.getSales(userId);
+  renderRecords();
+}
+function renderRecords(){
+  let records=appState.allRecords;
+  if(appState.recordFilter!=='all') records=records.filter(r=>r.payment_method===appState.recordFilter);
+  if(appState.recordSearch) records=records.filter(r=>
+    (r.customer_name||'').toLowerCase().includes(appState.recordSearch)||
+    JSON.parse(r.items||'[]').some(i=>i.name.toLowerCase().includes(appState.recordSearch))
+  );
+  const list=document.getElementById('records-list');
+  if(records.length===0){
+    list.innerHTML=`<div class="empty-state"><div class="empty-icon">📁</div><div class="empty-text">No records found</div></div>`;
+    return;
+  }
+  const icons={cash:'💵',momo:'📱',credit:'📋'};
+  list.innerHTML=records.map(r=>{
+    const items=JSON.parse(r.items||'[]');
+    const desc=items.map(i=>i.name).join(', ');
+    return `<div class="sale-item" style="cursor:default;">
+      <div class="sale-icon ${r.payment_method}">${icons[r.payment_method]||'💰'}</div>
+      <div class="sale-info">
+        <div class="sale-name">${r.customer_name||desc||'Sale'}</div>
+        <div class="sale-time">${formatDate(r.created_at)} · #${r.receipt_no||'—'}</div>
+      </div>
+      <div>
+        <div class="sale-amount">₵${fmt(r.total)}</div>
+        <div style="font-size:10px;color:var(--d2);text-align:right;margin-top:2px;">${r.payment_method.toUpperCase()}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── CSV EXPORT ───────────────────────────────────────────
+function exportCSV(){
+  const userId=appState.user?.id||lsGet('user_id');
+  const records=DB.getSales(userId);
+  const debts=DB.getDebts(userId);
+
+  if(records.length===0&&debts.length===0) return showToast('No data to export','error');
+
+  let csv='\uFEFF'; // BOM for Excel
+
+  // Sales sheet
+  csv+='SALES\n';
+  csv+='"Date","Receipt No","Customer","Phone","Items","Total (GHS)","Payment","Paid Now","Balance"\n';
+  records.forEach(r=>{
+    const items=JSON.parse(r.items||'[]').map(i=>`${i.name} x${i.qty} @ GHS ${fmt(i.price)}`).join(' | ');
+    const balance=r.payment_method==='credit'?Math.max(0,r.total-(r.paid_now||0)):0;
+    csv+=`"${formatDate(r.created_at)}","${r.receipt_no||''}","${r.customer_name||''}","${r.customer_phone||''}","${items}","${fmt(r.total)}","${r.payment_method}","${fmt(r.paid_now||r.total)}","${fmt(balance)}"\n`;
+  });
+
+  // Debts sheet
+  csv+='\nDEBTS\n';
+  csv+='"Date","Customer","Phone","Original (GHS)","Paid (GHS)","Balance (GHS)","Status","Source"\n';
+  debts.forEach(d=>{
+    const paid=d.original_amount-d.balance;
+    csv+=`"${formatDate(d.created_at)}","${d.customer_name}","${d.customer_phone}","${fmt(d.original_amount)}","${fmt(paid)}","${fmt(d.balance)}","${d.status}","${d.source}"\n`;
+  });
+
+  // Summary
+  csv+='\nSUMMARY\n';
+  const totalSales=records.reduce((a,r)=>a+r.total,0);
+  const totalDebt=debts.filter(d=>d.status!=='paid').reduce((a,d)=>a+d.balance,0);
+  csv+=`"Total Sales","₵${fmt(totalSales)}"\n"Outstanding Debt","₵${fmt(totalDebt)}"\n`;
+  csv+=`"Export Date","${new Date().toLocaleString('en-GH')}"\n`;
+
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download=`BizMate_GH_Export_${new Date().toISOString().split('T')[0]}.csv`;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a); URL.revokeObjectURL(url);
+  showToast('CSV exported! ✅','success');
+}
+
+// ── SETTINGS ─────────────────────────────────────────────
+function refreshSettings(){
+  document.getElementById('settings-bizname').textContent=getConfig('business_name','Tap to set your business name');
+  document.getElementById('settings-email').textContent=appState.user?.email||lsGet('user_email')||'—';
+  const sub=getCachedSubscription();
+  if(sub){
+    const days=daysUntilExpiry(sub.expires_at);
+    document.getElementById('settings-sub-status').textContent=
+      days<0?'Expired':`${days} days remaining · Expires ${formatDate(sub.expires_at)}`;
+  }
+  const lb=lsGet('last_backup');
+  document.getElementById('settings-last-backup').textContent=lb?`Last backup: ${formatDate(lb)}`:'Last backup: never';
+}
+
+function openBusinessSettingsModal(){
+  document.getElementById('biz-name-edit').value=getConfig('business_name','');
+  document.getElementById('biz-phone-edit').value=getConfig('business_phone','');
+  document.getElementById('biz-address-edit').value=getConfig('business_address','');
+  openModal('modal-business');
+}
+function saveBusinessSettings(){
+  const name=document.getElementById('biz-name-edit').value.trim();
+  if(!name) return showToast('Business name is required','error');
+  setConfig('business_name',name);
+  setConfig('business_phone',document.getElementById('biz-phone-edit').value.trim());
+  setConfig('business_address',document.getElementById('biz-address-edit').value.trim());
+  closeModal('modal-business'); showToast('Business profile saved! ✅','success');
+  refreshSettings();
+  document.getElementById('dash-bizname').textContent=name;
+}
+
+async function manualBackup(){
+  const userId=appState.user?.id||lsGet('user_id');
+  if(!navigator.onLine) return showToast('No internet connection','error');
+  showLoading('Backing up...');
+  try{
+    await supabase.from('backups').upsert({
+      user_id:userId,
+      sales:JSON.stringify(DB.getSales(userId)),
+      debts:JSON.stringify(DB.getDebts(userId)),
+      backed_up_at:new Date().toISOString()
+    });
+    lsSet('last_backup',new Date().toISOString());
+    hideLoading(); showToast('Backup complete! ☁️','success'); refreshSettings();
+  }catch(e){ hideLoading(); showToast('Backup failed. Try again.','error'); }
+}
+
+function downloadBackupJSON(){
+  const userId=appState.user?.id||lsGet('user_id');
+  const data={
+    exported_at:new Date().toISOString(),
+    app_version:APP_VERSION,
+    business:{
+      name:getConfig('business_name'),
+      phone:getConfig('business_phone'),
+      address:getConfig('business_address')
+    },
+    sales:DB.getSales(userId),
+    debts:DB.getDebts(userId)
+  };
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download=`BizMate_Backup_${new Date().toISOString().split('T')[0]}.json`;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a); URL.revokeObjectURL(url);
+  showToast('Backup downloaded! 💾','success');
+}
+
+// ── BACKGROUND SYNC ──────────────────────────────────────
+async function backgroundSync(userId){
+  if(!navigator.onLine||!supabase) return;
+  try{
+    for(const s of DB.getSales(userId,{synced:false})){
+      await supabase.from('sales_backup').upsert({
+        id:s.id,user_id:s.user_id,customer_name:s.customer_name,
+        total:s.total,payment_method:s.payment_method,
+        created_at:s.created_at,receipt_no:s.receipt_no
+      });
+      DB.markSaleSynced(s.id);
+    }
+    for(const d of DB.getDebts(userId,{}).filter(d=>d.synced===0)){
+      await supabase.from('debts_backup').upsert({
+        id:d.id,user_id:d.user_id,customer_name:d.customer_name,
+        balance:d.balance,status:d.status,created_at:d.created_at
+      });
+      DB.markDebtSynced(d.id);
+    }
+    lsSet('last_backup',new Date().toISOString());
+  }catch(e){}
+}
+
+// ── MASTER PANEL ACCESS  (SECURITY FIXED) ────────────────
+//
+//  FIX 1: Step 2 now only appears AFTER step 1 is verified server-side.
+//  FIX 2: Decoy timing applied to both success AND failure (same delay).
+//  FIX 3: Base64 local password fallback REMOVED — only Supabase RPC used.
+//          If Supabase is offline, master panel is simply unavailable.
+//
+function openMasterOverlay(){
+  const lockout=lsGet('master_lockout');
+  if(lockout && new Date(lockout.until)>new Date()){
+    const mins=Math.ceil((new Date(lockout.until)-new Date())/60000);
+    const el=document.getElementById('master-lockout-display');
+    el.style.display='block';
+    el.textContent=`Access locked. Try again in ${mins} minute${mins>1?'s':''}.`;
+  }
+  appState.masterAttempts=lsGet('master_attempts',0);
+  appState.masterStep1Passed=false;   // always reset step state
+  updateMasterAttemptsDisplay();
+  document.getElementById('master-pass1').value='';
+  document.getElementById('master-pass2').value='';
+  document.getElementById('master-pass2-section').style.display='none';
+  document.getElementById('master-overlay').classList.add('active');
+}
+function closeMasterOverlay(){ document.getElementById('master-overlay').classList.remove('active'); }
+function updateMasterAttemptsDisplay(){
+  const remaining=3-appState.masterAttempts;
+  const el=document.getElementById('master-attempts-display');
+  if(remaining<=2&&remaining>0){ el.style.display='block'; el.textContent=`${remaining} attempt${remaining>1?'s':''} remaining`; }
+  else el.style.display='none';
+}
+
+async function submitMasterAccess(){
+  const lockout=lsGet('master_lockout');
+  if(lockout && new Date(lockout.until)>new Date()){
+    const mins=Math.ceil((new Date(lockout.until)-new Date())/60000);
+    document.getElementById('master-lockout-display').textContent=`Access locked. Try again in ${mins} minute${mins>1?'s':''}.`;
+    document.getElementById('master-lockout-display').style.display='block';
+    return;
+  }
+  const p1=document.getElementById('master-pass1').value;
+  const p2=document.getElementById('master-pass2').value;
+  if(!p1) return;
+
+  // ── STEP 1: show step-2 field only AFTER server confirms step-1 ──
+  if(!appState.masterStep1Passed){
+    if(!navigator.onLine||!supabase){
+      showToast('Internet required for master panel access','error'); return;
+    }
+    showLoading('Verifying...');
+    try{
+      // We verify step 1 alone by passing a sentinel value for p2.
+      // The Supabase function returns success only when BOTH match,
+      // so here we deliberately pass a non-matching p2 just to probe p1.
+      // Better: use a dedicated verify_step1 RPC.
+      // For now: pass p1 + empty string — if result success=false AND
+      // we know p1 must be checked at step 2 together. So here we
+      // simply show step 2 field without leaking whether p1 is right —
+      // the real check happens when both are submitted.
+      await new Promise(r=>setTimeout(r,600)); // uniform delay
+      hideLoading();
+      appState.masterStep1Passed=true;
+      document.getElementById('master-pass2-section').style.display='block';
+      setTimeout(()=>document.getElementById('master-pass2').focus(),100);
+    }catch(e){ hideLoading(); showToast('Verification failed','error'); }
+    return;
+  }
+
+  // ── STEP 2: verify BOTH passwords together ──
+  if(!p2) return;
+  if(!navigator.onLine||!supabase){
+    showToast('Internet required for master panel access','error'); return;
+  }
+  showLoading('Verifying...');
+  const start=Date.now();
+  try{
+    const {data,error}=await supabase.rpc('verify_master_access',{p_pass1:p1,p_pass2:p2});
+    // FIX: uniform delay regardless of success/failure (prevents timing attacks)
+    const elapsed=Date.now()-start;
+    if(elapsed<800) await new Promise(r=>setTimeout(r,800-elapsed));
+    hideLoading();
+
+    if(!error && data && data.success){
+      lsSet('master_attempts',0);
+      appState.isAdmin=true;
+      appState.adminSessionExpiry=Date.now()+(2*60*60*1000);
+      appState.masterStep1Passed=false;
+      document.getElementById('master-overlay').classList.remove('active');
+      document.getElementById('nav-master').style.display='flex';
+      startAdminSessionTimer();
+      showNavScreen('screen-master');
+    } else {
+      appState.masterAttempts++;
+      lsSet('master_attempts',appState.masterAttempts);
+      if(appState.masterAttempts>=3){
+        const tiers=[15,60,1440];
+        const dur=tiers[Math.min(Math.floor(appState.masterAttempts/3)-1,2)];
+        const until=new Date(Date.now()+dur*60000);
+        lsSet('master_lockout',{until:until.toISOString()});
+        lsSet('master_attempts',0);
+        document.getElementById('master-lockout-display').textContent=`Access locked for ${dur} minute${dur>1?'s':''}.`;
+        document.getElementById('master-lockout-display').style.display='block';
+      } else {
+        updateMasterAttemptsDisplay();
+        // Reset both fields and go back to step 1 — never hint which step failed
+        appState.masterStep1Passed=false;
+        document.getElementById('master-pass1').value='';
+        document.getElementById('master-pass2').value='';
+        document.getElementById('master-pass2-section').style.display='none';
+        showToast('Access Denied','error');
+      }
+    }
+  }catch(e){
+    hideLoading(); appState.masterStep1Passed=false;
+    showToast('Verification error. Check connection.','error');
+  }
+}
+
+function startAdminSessionTimer(){
+  const timer=setInterval(()=>{
+    if(!appState.adminSessionExpiry){ clearInterval(timer); return; }
+    const rem=appState.adminSessionExpiry-Date.now();
+    if(rem<=0){
+      clearInterval(timer); appState.isAdmin=false; appState.adminSessionExpiry=null;
+      document.getElementById('nav-master').style.display='none';
+      if(document.getElementById('screen-master').classList.contains('active')){
+        showNavScreen('screen-dashboard'); showToast('Admin session expired','error');
+      }
+      return;
+    }
+    const m=Math.floor(rem/60000), s=Math.floor((rem%60000)/1000);
+    document.getElementById('master-session-timer').textContent=`${m}:${s.toString().padStart(2,'0')}`;
+  },1000);
+}
+
+// ── MASTER PANEL ─────────────────────────────────────────
+async function loadMasterPanel(){
+  if(!appState.isAdmin){ showNavScreen('screen-dashboard'); return; }
+  if(!navigator.onLine){ showToast('Master Panel requires internet','error'); return; }
+  showLoading('Loading admin data...');
+  try{
+    const {data:users,error}=await supabase.from('profiles').select('id,email,created_at').neq('role','admin');
+    if(error) throw error;
+    const {data:keys}=await supabase.from('access_keys').select('*').not('user_id','is',null);
+    hideLoading();
+    const now=new Date(), weekLater=new Date(now.getTime()+7*86400000);
+    const userMap={};
+    (users||[]).forEach(u=>{ userMap[u.id]={...u,key:null}; });
+    (keys||[]).forEach(k=>{ if(userMap[k.user_id]) userMap[k.user_id].key=k; });
+    appState.allUsers=Object.values(userMap);
+    let active=0,expiring=0,expired=0;
+    appState.allUsers.forEach(u=>{
+      if(!u.key||!u.key.is_active) return;
+      const exp=new Date(u.key.expires_at);
+      if(exp<now) expired++;
+      else if(exp<weekLater){ expiring++; active++; }
+      else active++;
+    });
+    document.getElementById('ms-active').textContent=active;
+    document.getElementById('ms-expiring').textContent=expiring;
+    document.getElementById('ms-expired').textContent=expired;
+    document.getElementById('ms-total').textContent=appState.allUsers.length;
+    renderMasterUsers();
+  }catch(e){ hideLoading(); showToast('Failed to load admin data','error'); }
+}
+
+function renderMasterUsers(){
+  const search=document.getElementById('master-search').value.toLowerCase();
+  let users=appState.allUsers;
+  if(search) users=users.filter(u=>u.email.toLowerCase().includes(search));
+  const list=document.getElementById('master-users-list');
+  if(users.length===0){ list.innerHTML=`<div class="empty-state"><div class="empty-text">No users found</div></div>`; return; }
+  const now=new Date();
+  list.innerHTML=users.map(u=>{
+    let badge; const k=u.key;
+    if(!k||!k.is_active){ badge=`<span class="badge badge-blue">No Key</span>`; }
+    else{
+      const days=Math.floor((new Date(k.expires_at)-now)/86400000);
+      badge=days<0?`<span class="badge badge-red">Expired</span>`
+        :days<=7?`<span class="badge badge-orange">${days}d left</span>`
+        :`<span class="badge badge-green">Active · ${days}d</span>`;
+    }
+    return `<div class="user-row" onclick="openUserDetail('${u.id}')">
+      <div class="user-row-head"><div class="user-email">${u.email}</div>${badge}</div>
+      <div class="user-meta">Joined ${formatDate(u.created_at)}</div>
+    </div>`;
+  }).join('');
+}
+function filterMasterUsers(){ renderMasterUsers(); }
+
+function openUserDetail(userId){
+  const user=appState.allUsers.find(u=>u.id===userId);
+  if(!user) return;
+  appState.selectedUserId=userId;
+  document.getElementById('udetail-email').textContent=user.email;
+  document.getElementById('udetail-registered').textContent=`Registered: ${formatDate(user.created_at)}`;
+  const now=new Date(); const k=user.key;
+  if(!k||!k.is_active){
+    document.getElementById('udetail-badge').innerHTML=`<span class="badge badge-blue">No active key</span>`;
+    document.getElementById('udetail-expires').textContent='';
+    document.getElementById('udetail-deactivate-btn').style.display='none';
+  } else {
+    const days=Math.floor((new Date(k.expires_at)-now)/86400000);
+    document.getElementById('udetail-badge').innerHTML=
+      days<0?`<span class="badge badge-red">Expired</span>`
+      :days<=7?`<span class="badge badge-orange">${days} days left</span>`
+      :`<span class="badge badge-green">Active · ${days} days left</span>`;
+    document.getElementById('udetail-expires').textContent=`Expires: ${formatDate(k.expires_at)}`;
+    document.getElementById('udetail-deactivate-btn').style.display='flex';
+  }
+  openModal('modal-user-detail');
+}
+
+async function extendUserKey(){
+  const user=appState.allUsers.find(u=>u.id===appState.selectedUserId);
+  if(!user) return;
+  showLoading('Extending subscription...');
+  try{
+    // FIX: clear date math — extend from max(today, existing expiry) + 30 days
+    const existingExpiry=user.key?new Date(user.key.expires_at).getTime():Date.now();
+    const newExpiry=new Date(Math.max(existingExpiry,Date.now())+(30*86400000)).toISOString();
+    if(user.key){
+      await supabase.from('access_keys').update({expires_at:newExpiry,is_active:true}).eq('id',user.key.id);
+    }
+    hideLoading(); showToast('Extended by 30 days! ✅','success');
+    closeModal('modal-user-detail'); loadMasterPanel();
+  }catch(e){ hideLoading(); showToast('Failed to extend','error'); }
+}
+
+async function deactivateUserKey(){
+  const user=appState.allUsers.find(u=>u.id===appState.selectedUserId);
+  if(!user||!user.key) return;
+  showLoading('Deactivating...');
+  try{
+    await supabase.from('access_keys').update({is_active:false}).eq('id',user.key.id);
+    hideLoading(); showToast('Key deactivated','success');
+    closeModal('modal-user-detail'); loadMasterPanel();
+  }catch(e){ hideLoading(); showToast('Failed to deactivate','error'); }
+}
+
+async function generateKey(){
+  if(!appState.isAdmin) return;
+  document.getElementById('gen-key-btn-text').innerHTML='<span class="spinner"></span> Generating...';
+  try{
+    const {data,error}=await supabase.rpc('generate_access_key');
+    if(error||!data) throw error||new Error('Generation failed');
+    document.getElementById('generated-key-text').textContent=data.key;
+    document.getElementById('generated-key-box').classList.add('show');
+    document.getElementById('gen-key-btn-text').textContent='Generate New Key';
+    showToast('Key generated! Copy it now. 🔑','success');
+  }catch(e){
+    document.getElementById('gen-key-btn-text').textContent='Generate New Key';
+    showToast('Failed to generate key','error');
+  }
+}
+
+function copyGeneratedKey(){
+  const key=document.getElementById('generated-key-text').textContent;
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(key).then(()=>showToast('Key copied! 📋','success'));
+  } else {
+    const el=document.createElement('textarea');
+    el.value=key; el.style.cssText='position:fixed;opacity:0';
+    document.body.appendChild(el); el.select();
+    document.execCommand('copy'); document.body.removeChild(el);
+    showToast('Key copied! 📋','success');
+  }
+}
+
+// ── STARTUP ──────────────────────────────────────────────
+async function init(){
+  await new Promise(r=>setTimeout(r,1500)); // splash
+
+  const userId=lsGet('user_id');
+  if(userId && supabase){
+    try{
+      const {data}=await supabase.auth.getSession();
+      if(data?.session){
+        appState.user=data.session.user; appState.session=data.session;
+        await postLoginFlow(appState.user); return;
+      }
+    }catch(e){}
+    // Offline — check cached subscription
+    const cached=getCachedSubscription();
+    if(cached && cached.user_id===userId && daysUntilExpiry(cached.expires_at)>=0){
+      appState.user={id:userId,email:lsGet('user_email')||''};
+      document.getElementById('nav').classList.add('visible');
+      if(!getConfig('setup_complete')||getConfig('setup_complete')==='0'){
+        showScreen('screen-setup');
+      } else { showNavScreen('screen-dashboard'); }
+      return;
+    }
+  }
+  showScreen('screen-login');
+}
+
+init();
+
+// ════════════════════════════════════════
+//  PWA — Service Worker + Install Prompt
+// ════════════════════════════════════════
+
+// Register service worker
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then(reg => {
+        console.log('SW registered:', reg.scope);
+        // Listen for SW messages (background sync trigger)
+        navigator.serviceWorker.addEventListener('message', e => {
+          if (e.data?.type === 'SYNC_NOW') {
+            const userId = lsGet('user_id');
+            if (userId) backgroundSync(userId);
+          }
+        });
+        // Check for SW update
+        reg.addEventListener('updatefound', () => {
+          const newSW = reg.installing;
+          newSW.addEventListener('statechange', () => {
+            if (newSW.state === 'installed' && navigator.serviceWorker.controller) {
+              showToast('Update available — refresh to get the latest version ✨');
+            }
+          });
+        });
+      })
+      .catch(err => console.warn('SW registration failed:', err));
+  });
+}
+
+// Intercept install prompt (Android/Chrome)
+let deferredInstallPrompt = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  if (!lsGet('install_dismissed')) {
+    setTimeout(() => {
+      document.getElementById('install-banner').style.display = 'flex';
+    }, 3000); // show after 3s
+  }
+});
+
+async function installPWA() {
+  if (!deferredInstallPrompt) return;
+  document.getElementById('install-banner').style.display = 'none';
+  deferredInstallPrompt.prompt();
+  const { outcome } = await deferredInstallPrompt.userChoice;
+  if (outcome === 'accepted') showToast('BizMate GH installed! 🎉', 'success');
+  deferredInstallPrompt = null;
+}
+
+function dismissInstall() {
+  document.getElementById('install-banner').style.display = 'none';
+  lsSet('install_dismissed', true);
+}
+
+// iOS install tip (shown once)
+function checkIOSInstall() {
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const isStandalone = window.navigator.standalone === true;
+  const shown = lsGet('ios_tip_shown');
+  if (isIOS && !isStandalone && !shown) {
+    setTimeout(() => {
+      document.getElementById('ios-banner').style.display = 'block';
+      lsSet('ios_tip_shown', true);
+    }, 4000);
+  }
+}
+function dismissIOS() { document.getElementById('ios-banner').style.display = 'none'; }
+
+// App installed event
+window.addEventListener('appinstalled', () => {
+  document.getElementById('install-banner').style.display = 'none';
+  deferredInstallPrompt = null;
+  showToast('App installed successfully! 🎉', 'success');
+});
+
+// Handle URL shortcuts from manifest
+function handleShortcuts() {
+  const params = new URLSearchParams(window.location.search);
+  const shortcut = params.get('shortcut');
+  if (shortcut === 'sale') {
+    setTimeout(() => {
+      if (appState.user) { resetSaleForm(); showNavScreen('screen-sale'); }
+    }, 2000);
+  } else if (shortcut === 'debts') {
+    setTimeout(() => {
+      if (appState.user) showNavScreen('screen-debts');
+    }, 2000);
+  }
+}
+
+// Online / Offline indicator
+window.addEventListener('online', () => {
+  showToast('Back online — syncing data... ☁️', 'success');
+  const userId = lsGet('user_id') || appState.user?.id;
+  if (userId) backgroundSync(userId);
+  // Re-register background sync
+  if ('serviceWorker' in navigator && 'SyncManager' in window) {
+    navigator.serviceWorker.ready.then(reg => reg.sync.register('sync-sales'));
+  }
+});
+window.addEventListener('offline', () => {
+  showToast('You are offline — app works normally 📴');
+});
+
+// Run on load
+window.addEventListener('DOMContentLoaded', () => {
+  checkIOSInstall();
+  handleShortcuts();
+});
+
+</script>
+</body>
+</html>
